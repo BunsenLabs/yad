@@ -1,0 +1,18 @@
+yad (0.27.0-1.2) bunsen-hydrogen; urgency=medium
+
+  * Build for bunsen-hydrogen
+
+ -- Jens John <dev@2ion.de>  Wed, 02 Dec 2015 15:11:00 +0100
+
+yad (0.27.0-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Build with -fgnu89-inline. Closes: #790779.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 25 Jul 2015 13:31:28 +0200
+
+yad (0.27.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #737599)
+
+ -- Gustavo Soares de Lima <gustavo@logicus.com.br>  Thu, 19 Feb 2015 19:37:03 -0200

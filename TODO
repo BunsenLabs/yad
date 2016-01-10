@@ -1,0 +1,4 @@
+- Parse ESC sequences in text-info dialog (or something like wiki syntax)
+- DBus support (?)
+- Common search dialog for list and text dialogs
+- Use item-separator in filters of file dialog (?)
