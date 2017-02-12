@@ -1,8 +1,37 @@
-yad (0.27.0-1.2) bunsen-hydrogen; urgency=medium
+yad (0.38.2-1.1) jessie-backports; urgency=medium
 
-  * Build for bunsen-hydrogen
+  * Non-maintainer upload.
+  * Staging build for BL jessie-backports
 
- -- Jens John <dev@2ion.de>  Wed, 02 Dec 2015 15:11:00 +0100
+ -- Jens John <dev@2ion.de>  Sun, 12 Feb 2017 14:52:31 +0100
+
+yad (0.38.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/clean:
+      - Added to remove an extra file created by build process.
+  * debian/control:
+      - Bump to DH 10.
+  * debian/copyright:
+      - Changed license to BSD-3-Clause (Closes: #836877).
+      - Updated with po/* authors.
+  * debian/rules:
+      - Build with enable-gio.
+      - Build with enable-html.
+      - Build with icon-browser (Closes: #849814).
+      - Build with enable-sourceview.
+      - Build with enable-spell.
+      - Removed unnecessary lines.
+  * debian/watch:
+      - Updated to version 4.
+
+ -- Gustavo Soares de Lima <gustavo@logicus.com.br>  Tue, 24 Jan 2017 23:23:49 -0200
+
+yad (0.37.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Gustavo Soares de Lima <gustavo@logicus.com.br>  Tue, 16 Aug 2016 18:49:00 +0000
 
 yad (0.27.0-1.1) unstable; urgency=medium
 
