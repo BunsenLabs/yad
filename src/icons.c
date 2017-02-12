@@ -14,12 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include "yad.h"
 
 static GtkWidget *icon_view;
+static GtkListStore *store;
 
 enum {
   COL_FILENAME = 0,
@@ -45,7 +46,7 @@ typedef struct {
 } DEntry;
 
 static void
-select_cb (GObject *obj, gpointer data)
+select_cb (GObject * obj, gpointer data)
 {
   static gboolean first_time = TRUE;
 
@@ -184,35 +185,35 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
 
           switch (column_count)
             {
-              case COL_NAME:
-              case COL_COMMAND:
-                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, string->str, -1);
+            case COL_NAME:
+            case COL_COMMAND:
+              gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, string->str, -1);
+              break;
+            case COL_TOOLTIP:
+              {
+                gchar *buf = g_markup_escape_text (string->str, -1);
+                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, buf, -1);
+                g_free (buf);
                 break;
-              case COL_TOOLTIP:
-                {
-                  gchar *buf = g_markup_escape_text (string->str, -1);
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, buf, -1);
-                  g_free (buf);
-                  break;
-                }
-              case COL_PIXBUF:
-                if (options.icons_data.compact)
-                  if (*string->str)
-                    pb = get_pixbuf (string->str, YAD_SMALL_ICON);
-                  else
-                    pb = NULL;
+              }
+            case COL_PIXBUF:
+              if (options.icons_data.compact)
+                if (*string->str)
+                  pb = get_pixbuf (string->str, YAD_SMALL_ICON);
                 else
-                  pb = get_pixbuf (string->str, YAD_BIG_ICON);
-                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, pb, -1);
-                if (pb)
-                  g_object_unref (pb);
-                break;
-              case COL_TERM:
-                if (strcasecmp (string->str, "true") == 0)
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, TRUE, -1);
-                else
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, FALSE, -1);
-                break;
+                  pb = NULL;
+              else
+                pb = get_pixbuf (string->str, YAD_BIG_ICON);
+              gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, pb, -1);
+              if (pb)
+                g_object_unref (pb);
+              break;
+            case COL_TERM:
+              if (strcasecmp (string->str, "true") == 0)
+                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, TRUE, -1);
+              else
+                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, FALSE, -1);
+              break;
             }
 
           column_count++;
@@ -259,12 +260,8 @@ parse_desktop_file (gchar * filename)
 
           /* get name */
           if (options.icons_data.generic)
-            {
-              ent->name = g_key_file_get_locale_string (kf, "Desktop Entry", "GenericName", NULL, NULL);
-              if (!ent->name)
-                ent->name = g_key_file_get_locale_string (kf, "Desktop Entry", "Name", NULL, NULL);
-            }
-          else
+            ent->name = g_key_file_get_locale_string (kf, "Desktop Entry", "GenericName", NULL, NULL);
+          if (!ent->name)
             ent->name = g_key_file_get_locale_string (kf, "Desktop Entry", "Name", NULL, NULL);
 
           /* use filename as a fallback */
@@ -281,8 +278,13 @@ parse_desktop_file (gchar * filename)
 
           /* get tooltip */
           val = g_key_file_get_locale_string (kf, "Desktop Entry", "Comment", NULL, NULL);
-          ent->comment = g_markup_escape_text (val, -1);
-          g_free (val);
+          if (val)
+            {
+              ent->comment = g_markup_escape_text (val, -1);
+              g_free (val);
+            }
+          else
+            ent->comment = g_strdup (ent->name);
 
           /* parse command or url */
           if (type == TYPE_APP)
@@ -304,7 +306,7 @@ parse_desktop_file (gchar * filename)
               gchar *url = g_key_file_get_string (kf, "Desktop Entry", "URL", NULL);
               if (url)
                 {
-                  ent->command = g_strdup_printf ("xdg-open '%s'", url);
+                  ent->command = g_strdup_printf (settings.open_cmd, url);
                   g_free (url);
                 }
             }
@@ -330,7 +332,7 @@ parse_desktop_file (gchar * filename)
 }
 
 static void
-read_dir (GtkListStore * store)
+read_dir ()
 {
   GDir *dir;
   const gchar *filename;
@@ -342,6 +344,8 @@ read_dir (GtkListStore * store)
       g_printerr (_("Unable to open directory %s: %s\n"), options.icons_data.directory, err->message);
       return;
     }
+
+  gtk_list_store_clear (store);
 
   while ((filename = g_dir_read_name (dir)) != NULL)
     {
@@ -379,15 +383,23 @@ read_dir (GtkListStore * store)
   g_dir_close (dir);
 }
 
+#ifdef HAVE_GIO
+static void
+dir_changed_cb (GFileMonitor *mon, GFile *file, GFile *ofile, GFileMonitorEvent ev, gpointer data)
+{
+  if (ev == G_FILE_MONITOR_EVENT_DELETED || ev == G_FILE_MONITOR_EVENT_CREATED)
+    read_dir ();
+}
+#endif
+
 GtkWidget *
 icons_create_widget (GtkWidget * dlg)
 {
   GtkWidget *w;
-  GtkListStore *store;
 
   w = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (w), GTK_SHADOW_ETCHED_IN);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (w), options.hscroll_policy, options.vscroll_policy);
 
   store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
                               GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN);
@@ -439,7 +451,7 @@ icons_create_widget (GtkWidget * dlg)
 
   /* handle directory */
   if (options.icons_data.directory)
-    read_dir (store);
+    read_dir ();
   else if (options.common_data.listen)
     {
       /* read from stdin */
@@ -454,12 +466,24 @@ icons_create_widget (GtkWidget * dlg)
         }
     }
 
-  g_object_unref (store);
-
   if (!options.icons_data.compact)
     g_signal_connect (G_OBJECT (icon_view), "item-activated", G_CALLBACK (activate_cb), NULL);
   else
     g_signal_connect (G_OBJECT (icon_view), "row-activated", G_CALLBACK (activate_cb), NULL);
+
+#ifdef HAVE_GIO
+  /* start file monitor */
+  if (options.icons_data.monitor && options.icons_data.directory)
+    {
+      GFile *file = g_file_new_for_path (options.icons_data.directory);
+      if (file)
+        {
+          GFileMonitor *mon = g_file_monitor_directory (file, 0, NULL, NULL);
+          g_signal_connect (G_OBJECT (mon), "changed", G_CALLBACK (dir_changed_cb), NULL);
+          g_object_unref (file);
+        }
+    }
+#endif
 
   gtk_container_add (GTK_CONTAINER (w), icon_view);
 

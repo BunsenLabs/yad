@@ -1,4 +1,5 @@
-- Parse ESC sequences in text-info dialog (or something like wiki syntax)
-- DBus support (?)
-- Common search dialog for list and text dialogs
-- Use item-separator in filters of file dialog (?)
+- add actions to list, text-info and icons dialogs
+- use optional gtksourceview in text-info dialog
+- [done] add option for disable selection in list dialog 
+- add slideshow to picture dialog (reading uris from stdin)
+- add single model for completion and combo-boxes

@@ -1,3 +1,149 @@
+Version 0.38.2
+    - fix enter behavior
+
+Version 0.38.1
+    - fix tooltip option in dnd dialog
+    - fix russian and ukrainian translations
+
+Version 0.38.0
+    - add ctrl+enter behavior for all dialogs
+    - add --inc-button option to scale dialog
+    - fix --no-escape handling
+    - add --show-week option to calendar dialog
+    - improve behavior of --filename option of file dialog
+
+Version 0.37.0
+    - new layout management (fix gtk3 warning about missing parent)
+    - fix single-click selection in list dialog
+    - add --grid-lines option to list dialog
+    - add --posx and --posy options for setting window position
+    - fix quoting and escaping arguments for handlers in list and form dialogs
+    - add wrapping ability for columns in list dialog
+    - wrapped, ellipsized and editable columns may be specified as list
+    - add 'perm' type of bar in multiprogress dialog
+
+Version 0.36.3
+    - fix segfault when parse desktop files with missed or empty Comment field 
+      in icons dialog
+    - code and output cleanup
+
+Version 0.36.2
+    - honor precision for floats in numeric fields of form and entry dialogs
+    - fix settings title and icon for browser mode in html dialog
+
+Version 0.36.1
+    - fix quoting buttons commands in form dialog
+
+Version 0.36.0
+    - add --no-selection option to list dialog
+    - improve --center option
+    - add spell checking support for text field in form and text-info dialog
+    - add gtksourceview support to text-info dialog
+    - fix setting initial value for numeric text entry in entry dialog
+    - do not close print dialog when preview button is clicked
+    - add --monitor option to icon dialog
+    - change default font for text-info and print text files to Monospace
+    - quote field values for button callback in form dialog
+
+Version 0.35.0
+    - add BAR column type to list dialog
+    - add SZ column type to list dialog (displays human readable sizes)
+    - add --show-cursor option to text dialog
+    - fix handling leading spaces in button callback of form dialog
+    - fix --show-hidden behavior
+    - switch float output from %g to %f
+    - fix setting custom bg color in text-info dialog for gtk3
+
+Version 0.34.2
+    - fix clearing fields in form when --cycle-read is using
+
+Version 0.34.1
+    - fix expander
+    - update man page
+
+Version 0.34.0
+    - add --select-action option to list dialog
+    - add --separate-output option to font dialog
+    - honor --quoted-output option in font dialog
+    - add --show-hidden option to file selection dialogs
+    - add --watch-bar to multi-progress dialog
+    - improve handling of autoclosing event in multi-progress dialog
+    - improve output of color values in form dialog
+    - fix build with gtk+-3.0 and webkit-3.0
+
+Version 0.33.1
+    - fix timeout handling
+
+Version 0.33.0
+    - add --picture dialog, a simple image viewer
+    - add --focus-field option to form dialog for set initialy fosuced field
+    - add --complete option for extended completions in entry fields
+    - add ability to fill form data through stdin
+    - fix handling empty data in form dialog
+    - improvements in browser mode of html dialog
+    - add --float-precision option
+    - improve output of floating point numbers
+
+Version 0.32.0
+    - enable rules-hint for icons list in icon browser
+    - add --splash options (thanks to Konstantin Baierer)
+    - add --no-focus option
+    - fix timeout progressbar layout for gtk3 builds
+    - add --num-output option for output index of active element in combo-boxes
+
+Version 0.31.3
+    - fix setting default value for completion entry in form dialog
+
+Version 0.31.2
+    - fix segfault in list dialog when separators enabled but --sep-value is unset
+
+Version 0.31.1
+    - fix segfault in html dialog
+
+Version 0.31.0
+    - add separators to list dialog
+    - use YAD_OPTIONS variable for specify default yad arguments
+    - add --no-rules-hint option to list dialog
+    - add parameters for controlling palettes in color selection
+    - remove some entries from settings file
+    - set default open command and date format through the settings file
+    - add additional filter settings for file selection dialogs
+    - apply filter and preview settings to all of file selection dialogs
+    - fix settings custom icon theme
+
+Version 0.30.1
+    - fix parsing paned orientation
+
+Version 0.30.0
+    - add paned dialog
+    - add --parent-win option to make dialog transient for special window
+    - add --uri-color option for setting text color of URIs in text-info dialog
+
+Version 0.29.1
+    - fix build without HTML dialog
+
+Version 0.29.0
+    - fix focus problems in html dialog
+    - set default encoding from locale for html widget
+    - fix quoted output in form dialog
+    - add --no-escape option to prevent close dialog when Esc is pressed
+    - show gtk version within --version and about dialog
+    - fix build with gcc 5.x
+
+Version 0.28.1
+    - fix incorrect rows output order in form dialog
+
+Version 0.28.0
+    - add HTML dialog
+    - add different output formats for color dialog
+    - add mnemonic feature for field labels in form and entry dialogs
+    - add completion entry as field type in form dialog
+    - add output by rows in form dialog when layout with several columns is used
+    - fix labels in multiprogress dialog
+    - fix print to file in print dialog
+    - fix setup arguments for double-click action in list dialog
+    - update man page
+
 Version 0.27.0
     - add --hidden option to notification icon
     - add --tooltip-column option to list dialog

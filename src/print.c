@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <sys/types.h>
@@ -28,8 +28,8 @@
 #define HEADER_GAP (3*72/25.4)
 #define HEADER_FONT "Sans 11"
 
-#define FONTNAME "Sans"
-#define FONTSIZE 12.0
+#define FONTNAME "Monospace"
+#define FONTSIZE 11.0
 
 static gchar **text;
 static gint nlines, npages;
@@ -213,10 +213,10 @@ yad_print_run (void)
 {
   GtkWidget *dlg;
   GtkWidget *box, *img, *lbl;
-  gchar *job_name = NULL;
+  gchar *uri, *job_name = NULL;
   GtkPrintCapabilities pcap;
   GtkPrintOperationAction act = GTK_PRINT_OPERATION_ACTION_PRINT;
-  gint ret = 0;
+  gint resp, ret = 0;
   GError *err = NULL;
 
   /* check if file is exists */
@@ -247,11 +247,15 @@ yad_print_run (void)
 
   if (!settings.print_settings)
     settings.print_settings = gtk_print_unix_dialog_get_settings (GTK_PRINT_UNIX_DIALOG (dlg));
-  gtk_print_settings_set (settings.print_settings, "output-uri", "yad.pdf");
+
+  uri = g_build_filename (g_get_current_dir (), "yad.pdf", NULL);
+  gtk_print_settings_set (settings.print_settings, "output-uri", g_filename_to_uri (uri, NULL, NULL));
+  g_free (uri);
+
   gtk_print_unix_dialog_set_settings (GTK_PRINT_UNIX_DIALOG (dlg), settings.print_settings);
+
   if (settings.page_setup)
     gtk_print_unix_dialog_set_page_setup (GTK_PRINT_UNIX_DIALOG (dlg), settings.page_setup);
-
 
   /* set window behavior */
   gtk_widget_set_name (dlg, "yad-dialog-window");
@@ -325,26 +329,28 @@ yad_print_run (void)
       gtk_box_reorder_child (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dlg))), box, 0);
     }
 
-  //gtk_widget_show (dlg);
-  switch (gtk_dialog_run (GTK_DIALOG (dlg)))
+  do
     {
-      case GTK_RESPONSE_APPLY: /* ask for preview */
-        act = GTK_PRINT_OPERATION_ACTION_PREVIEW;
-      case GTK_RESPONSE_OK:    /* run print */
-        settings.print_settings = gtk_print_unix_dialog_get_settings (GTK_PRINT_UNIX_DIALOG (dlg));
-        settings.page_setup = gtk_print_unix_dialog_get_page_setup (GTK_PRINT_UNIX_DIALOG (dlg));
-        job_name = g_strdup_printf ("yad-%s-%d", g_path_get_basename (options.common_data.uri), getpid ());
-        if (options.print_data.type != YAD_PRINT_RAW)
-          {
-            /* print text or image */
-            GtkPrintOperation *op = gtk_print_operation_new ();
-            gtk_print_operation_set_unit (op, GTK_UNIT_POINTS);
-            gtk_print_operation_set_print_settings (op, settings.print_settings);
-            gtk_print_operation_set_default_page_setup (op, settings.page_setup);
-            gtk_print_operation_set_job_name (op, job_name);
+      resp = gtk_dialog_run (GTK_DIALOG (dlg));
+      switch (resp)
+        {
+        case GTK_RESPONSE_APPLY:   /* ask for preview */
+          act = GTK_PRINT_OPERATION_ACTION_PREVIEW;
+        case GTK_RESPONSE_OK:      /* run print */
+          settings.print_settings = gtk_print_unix_dialog_get_settings (GTK_PRINT_UNIX_DIALOG (dlg));
+          settings.page_setup = gtk_print_unix_dialog_get_page_setup (GTK_PRINT_UNIX_DIALOG (dlg));
+          job_name = g_strdup_printf ("yad-%s-%d", g_path_get_basename (options.common_data.uri), getpid ());
+          if (options.print_data.type != YAD_PRINT_RAW)
+            {
+              /* print text or image */
+              GtkPrintOperation *op = gtk_print_operation_new ();
+              gtk_print_operation_set_unit (op, GTK_UNIT_POINTS);
+              gtk_print_operation_set_print_settings (op, settings.print_settings);
+              gtk_print_operation_set_default_page_setup (op, settings.page_setup);
+              gtk_print_operation_set_job_name (op, job_name);
 
-            switch (options.print_data.type)
-              {
+              switch (options.print_data.type)
+                {
                 case YAD_PRINT_TEXT:
                   g_signal_connect (G_OBJECT (op), "begin-print", G_CALLBACK (begin_print_text), NULL);
                   g_signal_connect (G_OBJECT (op), "draw-page", G_CALLBACK (draw_page_text), NULL);
@@ -354,63 +360,65 @@ yad_print_run (void)
                   g_signal_connect (G_OBJECT (op), "draw-page", G_CALLBACK (draw_page_image), NULL);
                   break;
                 default:;
-              }
+                }
 
-            if (gtk_print_operation_run (op, act, NULL, &err) == GTK_PRINT_OPERATION_RESULT_ERROR)
-              {
-                g_printerr (_("Printing failed: %s\n"), err->message);
-                ret = 1;
-              }
-          }
-        else
-          {
-            /* print raw ps or pdf data */
-            GtkPrinter *prnt;
-            GtkPrintJob *job;
+              if (gtk_print_operation_run (op, act, NULL, &err) == GTK_PRINT_OPERATION_RESULT_ERROR)
+                {
+                  g_printerr (_("Printing failed: %s\n"), err->message);
+                  ret = 1;
+                }
+            }
+          else
+            {
+              /* print raw ps or pdf data */
+              GtkPrinter *prnt;
+              GtkPrintJob *job;
 
-            prnt = gtk_print_unix_dialog_get_selected_printer (GTK_PRINT_UNIX_DIALOG (dlg));
+              prnt = gtk_print_unix_dialog_get_selected_printer (GTK_PRINT_UNIX_DIALOG (dlg));
 
-            if (g_str_has_suffix (options.common_data.uri, ".ps"))
-              {
-                if (!gtk_printer_accepts_ps (prnt))
-                  {
-                    g_printerr (_("Printer doesn't support ps format.\n"));
-                    ret = 1;
-                  }
-              }
-            else if (g_str_has_suffix (options.common_data.uri, ".pdf"))
-              {
-                if (!gtk_printer_accepts_pdf (prnt))
-                  {
-                    g_printerr (_("Printer doesn't support pdf format.\n"));
-                    ret = 1;
-                  }
-              }
-            else
-              {
-                g_printerr (_("This file type is not supported for raw printing.\n"));
-                ret = 1;
-              }
-            if (ret == 1)
-              break;
+              if (g_str_has_suffix (options.common_data.uri, ".ps"))
+                {
+                  if (!gtk_printer_accepts_ps (prnt))
+                    {
+                      g_printerr (_("Printer doesn't support ps format.\n"));
+                      ret = 1;
+                    }
+                }
+              else if (g_str_has_suffix (options.common_data.uri, ".pdf"))
+                {
+                  if (!gtk_printer_accepts_pdf (prnt))
+                    {
+                      g_printerr (_("Printer doesn't support pdf format.\n"));
+                      ret = 1;
+                    }
+                }
+              else
+                {
+                  g_printerr (_("This file type is not supported for raw printing.\n"));
+                  ret = 1;
+                }
+              if (ret == 1)
+                break;
 
-            job = gtk_print_job_new (job_name, prnt, settings.print_settings, settings.page_setup);
-            if (gtk_print_job_set_source_file (job, options.common_data.uri, &err))
-              {
-                gtk_print_job_send (job, (GtkPrintJobCompleteFunc) raw_print_done, &ret, NULL);
-                gtk_main ();
-              }
-            else
-              {
-                g_printerr (_("Load source file failed: %s\n"), err->message);
-                ret = 1;
-              }
-          }
-        break;
-      default:
-        ret = 1;
-        break;
+              job = gtk_print_job_new (job_name, prnt, settings.print_settings, settings.page_setup);
+              if (gtk_print_job_set_source_file (job, options.common_data.uri, &err))
+                {
+                  gtk_print_job_send (job, (GtkPrintJobCompleteFunc) raw_print_done, &ret, NULL);
+                  gtk_main ();
+                }
+              else
+                {
+                  g_printerr (_("Load source file failed: %s\n"), err->message);
+                  ret = 1;
+                }
+            }
+          break;
+        default:
+          ret = 1;
+          break;
+        }
     }
+  while (resp == GTK_RESPONSE_APPLY);
 
   gtk_widget_destroy (dlg);
   write_settings ();

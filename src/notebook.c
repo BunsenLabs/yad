@@ -14,13 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2017, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -29,7 +30,6 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <gdk/gdk.h>
-#include <gdk/gdkx.h>
 
 #include "yad.h"
 
@@ -42,12 +42,13 @@ notebook_create_widget (GtkWidget * dlg)
   GSList *tab;
 
   /* get shared memory */
-  tabs = get_tabs (options.notebook_data.key, TRUE);
+  tabs = get_tabs (options.common_data.key, TRUE);
   if (!tabs)
     exit (-1);
 
   /* create widget */
   w = notebook = gtk_notebook_new ();
+  gtk_widget_set_name (w, "yad-notebook-widget");
   gtk_notebook_set_tab_pos (GTK_NOTEBOOK (w), options.notebook_data.pos);
   gtk_container_set_border_width (GTK_CONTAINER (w), 5);
 
@@ -113,8 +114,6 @@ notebook_close_childs (void)
   struct shmid_ds buf;
   gboolean is_running = TRUE;
 
-  gtk_widget_destroy (notebook);
-
   n_tabs = g_slist_length (options.notebook_data.tabs);
   for (i = 1; i <= n_tabs; i++)
     {
@@ -131,10 +130,10 @@ notebook_close_childs (void)
           if (tabs[i].pid != -1 && kill (tabs[i].pid, 0) == 0)
             {
               is_running = TRUE;
-              gtk_main_iteration ();
               break;
             }
         }
+      usleep (1000);
     }
 
   /* cleanup shared memory */

@@ -14,14 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <string.h>
 #include <stdlib.h>
 
 #include <glib/gprintf.h>
-#include <gdk/gdkkeysyms.h>
 
 #include "yad.h"
 
@@ -29,8 +28,10 @@ static GtkWidget *list_view;
 
 static gint fore_col, back_col, font_col;
 
+static gulong select_hndl = 0;
+
 static gboolean
-list_activate_cb (GtkWidget * widget, GdkEventKey * event, gpointer data)
+list_activate_cb (GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
 #if GTK_CHECK_VERSION(2,24,0)
   if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter)
@@ -44,7 +45,7 @@ list_activate_cb (GtkWidget * widget, GdkEventKey * event, gpointer data)
           if (event->state & GDK_CONTROL_MASK)
             {
               if (options.plug == -1)
-                gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+                yad_exit (YAD_RESPONSE_OK);
             }
           else
             return FALSE;
@@ -52,7 +53,7 @@ list_activate_cb (GtkWidget * widget, GdkEventKey * event, gpointer data)
       else
         {
           if (options.plug == -1)
-            gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+            yad_exit (YAD_RESPONSE_OK);
         }
 
       return TRUE;
@@ -62,7 +63,7 @@ list_activate_cb (GtkWidget * widget, GdkEventKey * event, gpointer data)
 }
 
 static void
-toggled_cb (GtkCellRendererToggle * cell, gchar * path_str, gpointer data)
+toggled_cb (GtkCellRendererToggle *cell, gchar *path_str, gpointer data)
 {
   gint column;
   gboolean fixed;
@@ -82,7 +83,7 @@ toggled_cb (GtkCellRendererToggle * cell, gchar * path_str, gpointer data)
 }
 
 static gboolean
-runtoggle (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointer data)
+runtoggle (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
   gint col = GPOINTER_TO_INT (data);
   gtk_list_store_set (GTK_LIST_STORE (model), iter, col, FALSE, -1);
@@ -90,7 +91,7 @@ runtoggle (GtkTreeModel * model, GtkTreePath * path, GtkTreeIter * iter, gpointe
 }
 
 static void
-rtoggled_cb (GtkCellRendererToggle * cell, gchar * path_str, gpointer data)
+rtoggled_cb (GtkCellRendererToggle *cell, gchar *path_str, gpointer data)
 {
   gint column;
   GtkTreeIter iter;
@@ -108,7 +109,7 @@ rtoggled_cb (GtkCellRendererToggle * cell, gchar * path_str, gpointer data)
 }
 
 static void
-cell_edited_cb (GtkCellRendererText * cell, const gchar * path_string, const gchar * new_text, gpointer data)
+cell_edited_cb (GtkCellRendererText *cell, const gchar *path_string, const gchar *new_text, gpointer data)
 {
   gint column;
   GtkTreeIter iter;
@@ -131,7 +132,7 @@ cell_edited_cb (GtkCellRendererText * cell, const gchar * path_string, const gch
 }
 
 static gboolean
-regex_search (GtkTreeModel * model, gint col, const gchar * key, GtkTreeIter * iter, gpointer data)
+regex_search (GtkTreeModel *model, gint col, const gchar *key, GtkTreeIter *iter, gpointer data)
 {
   static GRegex *pattern = NULL;
   static guint pos = 0;
@@ -193,6 +194,8 @@ create_model (gint n_columns)
           ctypes[i] = G_TYPE_BOOLEAN;
           break;
         case YAD_COLUMN_NUM:
+        case YAD_COLUMN_SIZE:
+        case YAD_COLUMN_BAR:
           ctypes[i] = G_TYPE_INT64;
           break;
         case YAD_COLUMN_FLOAT:
@@ -222,6 +225,38 @@ create_model (gint n_columns)
   store = gtk_list_store_newv (n_columns, ctypes);
 
   return GTK_TREE_MODEL (store);
+}
+
+static void
+float_col_format (GtkTreeViewColumn *col, GtkCellRenderer *cell, GtkTreeModel *model,
+                  GtkTreeIter *iter, gpointer data)
+{
+  gdouble val;
+  gchar buf[20];
+
+  gtk_tree_model_get (model, iter, GPOINTER_TO_INT (data), &val, -1);
+  g_snprintf (buf, sizeof (buf), "%.*f", options.common_data.float_precision, val);
+  g_object_set (cell, "text", buf, NULL);
+}
+
+static void
+size_col_format (GtkTreeViewColumn *col, GtkCellRenderer *cell, GtkTreeModel *model,
+                  GtkTreeIter *iter, gpointer data)
+{
+  guint64 val;
+  gchar buf[20], *sz;
+
+  gtk_tree_model_get (model, iter, GPOINTER_TO_INT (data), &val, -1);
+#if GLIB_CHECK_VERSION(2,30,0)
+  sz = g_format_size (val);
+#elif  GLIB_CHECK_VERSION(2,16,0)
+  sz = g_format_size_for_display (val);
+#else
+  sz = g_strdup_printf ("%d", val);
+#endif
+  g_snprintf (buf, sizeof (buf), "%s", sz);
+  g_free (sz);
+  g_object_set (cell, "text", buf, NULL);
 }
 
 static void
@@ -262,9 +297,10 @@ add_columns (gint n_columns)
             gtk_tree_view_column_add_attribute (column, renderer, "cell-background", back_col);
           break;
         case YAD_COLUMN_NUM:
+        case YAD_COLUMN_SIZE:
         case YAD_COLUMN_FLOAT:
           renderer = gtk_cell_renderer_text_new ();
-          if (options.common_data.editable)
+          if (col->editable)
             {
               g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
               g_signal_connect (renderer, "edited", G_CALLBACK (cell_edited_cb), NULL);
@@ -278,10 +314,22 @@ add_columns (gint n_columns)
             gtk_tree_view_column_add_attribute (column, renderer, "font", font_col);
           gtk_tree_view_column_set_sort_column_id (column, i);
           gtk_tree_view_column_set_resizable (column, TRUE);
+          if (col->type == YAD_COLUMN_FLOAT)
+            gtk_tree_view_column_set_cell_data_func (column, renderer, float_col_format, GINT_TO_POINTER (i), NULL);
+          else if (col->type == YAD_COLUMN_SIZE)
+            gtk_tree_view_column_set_cell_data_func (column, renderer, size_col_format, GINT_TO_POINTER (i), NULL);
+          break;
+        case YAD_COLUMN_BAR:
+          renderer = gtk_cell_renderer_progress_new ();
+          column = gtk_tree_view_column_new_with_attributes (col->name, renderer, "value", i, NULL);
+          if (back_col != -1)
+            gtk_tree_view_column_add_attribute (column, renderer, "cell-background", back_col);
+          gtk_tree_view_column_set_sort_column_id (column, i);
+          gtk_tree_view_column_set_resizable (column, TRUE);
           break;
         default:
           renderer = gtk_cell_renderer_text_new ();
-          if (options.common_data.editable)
+          if (col->editable)
             {
               g_object_set (G_OBJECT (renderer), "editable", TRUE, NULL);
               g_signal_connect (renderer, "edited", G_CALLBACK (cell_edited_cb), NULL);
@@ -290,7 +338,12 @@ add_columns (gint n_columns)
             column = gtk_tree_view_column_new_with_attributes (col->name, renderer, "text", i, NULL);
           else
             column = gtk_tree_view_column_new_with_attributes (col->name, renderer, "markup", i, NULL);
-          g_object_set (G_OBJECT (renderer), "ellipsize", options.list_data.ellipsize, NULL);
+          g_object_set (G_OBJECT (renderer), "ellipsize", col->ellipsize, NULL);
+          if (col->wrap)
+            {
+              g_object_set (G_OBJECT (renderer), "wrap-width", options.list_data.wrap_width, NULL);
+              g_object_set (G_OBJECT (renderer), "wrap-mode", PANGO_WRAP_WORD_CHAR, NULL);
+            }
           if (fore_col != -1)
             gtk_tree_view_column_add_attribute (column, renderer, "foreground", fore_col);
           if (back_col != -1)
@@ -322,6 +375,102 @@ add_columns (gint n_columns)
     }
 }
 
+static void
+cell_set_data (GtkTreeIter *it, guint num, gchar *data)
+{
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (list_view));
+  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, num);
+
+  switch (col->type)
+    {
+    case YAD_COLUMN_CHECK:
+    case YAD_COLUMN_RADIO:
+        gtk_list_store_set (GTK_LIST_STORE (model), it, num, (strcasecmp (data, "true") == 0), -1);
+      break;
+    case YAD_COLUMN_NUM:
+    case YAD_COLUMN_SIZE:
+      gtk_list_store_set (GTK_LIST_STORE (model), it, num, g_ascii_strtoll (data, NULL, 10), -1);
+      break;
+    case YAD_COLUMN_FLOAT:
+      gtk_list_store_set (GTK_LIST_STORE (model), it, num, g_ascii_strtod (data, NULL), -1);
+      break;
+    case YAD_COLUMN_BAR:
+      {
+        gint64 val = g_ascii_strtoll (data, NULL, 10);
+        if (val < 0)
+          val = 0;
+        if (val > 100)
+          val = 100;
+        gtk_list_store_set (GTK_LIST_STORE (model), it, num, val, -1);
+        break;
+      }
+    case YAD_COLUMN_IMAGE:
+      {
+        GdkPixbuf *pb = get_pixbuf (data, YAD_SMALL_ICON);
+        if (pb)
+          {
+            gtk_list_store_set (GTK_LIST_STORE (model), it, num, pb, -1);
+            g_object_unref (pb);
+          }
+        break;
+      }
+    default:
+      gtk_list_store_set (GTK_LIST_STORE (model), it, num, data, -1);
+      break;
+    }
+}
+
+static gchar *
+cell_get_data (GtkTreeIter *it, guint num)
+{
+  gchar *data = NULL;
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (list_view));
+  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, num);
+
+  switch (col->type)
+    {
+    case YAD_COLUMN_CHECK:
+    case YAD_COLUMN_RADIO:
+      {
+        gboolean bval;
+        gtk_tree_model_get (model, it, num, &bval, -1);
+        data = g_strdup (bval ? "TRUE" : "FALSE");
+        break;
+      }
+    case YAD_COLUMN_NUM:
+    case YAD_COLUMN_SIZE:
+    case YAD_COLUMN_BAR:
+      {
+        gint64 nval;
+        gtk_tree_model_get (model, it, num, &nval, -1);
+        data = g_strdup_printf ("%ld", (long) nval);
+        break;
+      }
+    case YAD_COLUMN_FLOAT:
+      {
+        gdouble nval;
+        gtk_tree_model_get (model, it, num, &nval, -1);
+        data = g_strdup_printf ("%lf", nval);
+        break;
+      }
+    case YAD_COLUMN_IMAGE:
+      {
+        data = g_strdup ("''");
+        break;
+      }
+    default:
+      {
+        gchar *cval;
+        gtk_tree_model_get (model, it, num, &cval, -1);
+        if (cval)
+          data = g_shell_quote (cval);
+        break;
+      }
+    }
+
+  return data;
+}
+
 static gboolean
 handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
 {
@@ -340,8 +489,6 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
 
       do
         {
-          YadColumn *col;
-          GdkPixbuf *pb;
           gint status;
 
           do
@@ -367,11 +514,17 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
             }
 
           strip_new_line (string->str);
+
+          /* clear list if ^L received */
           if (string->str[0] == '\014')
             {
-              /* clear list if ^L received */
+              GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (list_view));
+              if (select_hndl)
+                g_signal_handler_block (G_OBJECT (sel), select_hndl);
               gtk_list_store_clear (GTK_LIST_STORE (model));
               row_count = column_count = 0;
+              if (select_hndl)
+                g_signal_handler_unblock (G_OBJECT (sel), select_hndl);
               continue;
             }
 
@@ -390,38 +543,7 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
               gtk_list_store_append (GTK_LIST_STORE (model), &iter);
             }
 
-          col = (YadColumn *) g_slist_nth_data (options.list_data.columns, column_count);
-
-          switch (col->type)
-            {
-            case YAD_COLUMN_CHECK:
-            case YAD_COLUMN_RADIO:
-              if (strcasecmp (string->str, "true") == 0)
-                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, TRUE, -1);
-              else
-                gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, FALSE, -1);
-              break;
-            case YAD_COLUMN_NUM:
-              gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count,
-                                  g_ascii_strtoll (string->str, NULL, 10), -1);
-              break;
-            case YAD_COLUMN_FLOAT:
-              gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count,
-                                  g_ascii_strtod (string->str, NULL), -1);
-              break;
-            case YAD_COLUMN_IMAGE:
-              pb = get_pixbuf (string->str, YAD_SMALL_ICON);
-              if (pb)
-                {
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, pb, -1);
-                  g_object_unref (pb);
-                }
-              break;
-            default:
-              gtk_list_store_set (GTK_LIST_STORE (model), &iter, column_count, string->str, -1);
-              break;
-            }
-
+          cell_set_data (&iter, column_count, string->str);
           column_count++;
         }
       while (g_io_channel_get_buffer_condition (channel) == G_IO_IN);
@@ -458,53 +580,14 @@ fill_data (gint n_columns)
           gtk_list_store_append (model, &iter);
           for (j = 0; j < n_columns; j++, i++)
             {
-              YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, j);
-              GdkPixbuf *pb;
-
               if (args[i] == NULL)
                 break;
 
-              switch (col->type)
-                {
-                case YAD_COLUMN_CHECK:
-                case YAD_COLUMN_RADIO:
-                  if (strcasecmp ((gchar *) args[i], "true") == 0)
-                    gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, TRUE, -1);
-                  else
-                    gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, FALSE, -1);
-                  break;
-                case YAD_COLUMN_NUM:
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, g_ascii_strtoll (args[i], NULL, 10), -1);
-                  break;
-                case YAD_COLUMN_FLOAT:
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, g_ascii_strtod (args[i], NULL), -1);
-                  break;
-                case YAD_COLUMN_IMAGE:
-                  pb = get_pixbuf (args[i], YAD_SMALL_ICON);
-                  if (pb)
-                    {
-                      gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, pb, -1);
-                      g_object_unref (pb);
-                    }
-                  break;
-                default:
-                  gtk_list_store_set (GTK_LIST_STORE (model), &iter, j, args[i], -1);
-                  break;
-                }
+              cell_set_data (&iter, j, args[i]);
             }
         }
 
       gtk_widget_thaw_child_notify (list_view);
-
-      if (settings.always_selected)
-        {
-          GtkTreeIter it;
-          GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (list_view));
-          GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (list_view));
-
-          gtk_tree_model_get_iter_first (model, &it);
-          gtk_tree_selection_select_iter (sel, &it);
-        }
     }
 
   if (options.common_data.listen || !(options.extra_data && *options.extra_data))
@@ -540,45 +623,11 @@ double_click_cb (GtkTreeView * view, GtkTreePath * path, GtkTreeViewColumn * col
 
           for (i = 0; i < n_cols; i++)
             {
-              YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, i);
-              switch (col->type)
+              gchar *val = cell_get_data (&iter, i);
+              if (val)
                 {
-                case YAD_COLUMN_CHECK:
-                case YAD_COLUMN_RADIO:
-                  {
-                    gboolean bval;
-                    gtk_tree_model_get (model, &iter, i, &bval, -1);
-                    g_string_append_printf (args, " %s", bval ? "TRUE" : "FALSE");
-                    break;
-                  }
-                case YAD_COLUMN_NUM:
-                  {
-                    gint64 nval;
-                    gtk_tree_model_get (model, &iter, i, &nval, -1);
-                    g_string_append_printf (args, " %ld", (long) nval);
-                    break;
-                  }
-                case YAD_COLUMN_FLOAT:
-                  {
-                    gdouble nval;
-                    gtk_tree_model_get (model, &iter, i, &nval, -1);
-                    g_string_append_printf (args, " %lf", nval);
-                    break;
-                  }
-                case YAD_COLUMN_IMAGE:
-                  {
-                    g_string_append_printf (args, " ''");
-                    break;
-                  }
-                default:
-                  {
-                    gchar *cval, *sval;
-                    gtk_tree_model_get (model, &iter, i, &cval, -1);
-                    sval = g_shell_quote (cval);
-                    g_string_append_printf (args, " %s", sval);
-                    g_free (sval);
-                    break;
-                  }
+                  g_string_append_printf (args, " %s", val);
+                  g_free (val);
                 }
             }
         }
@@ -608,39 +657,10 @@ double_click_cb (GtkTreeView * view, GtkTreePath * path, GtkTreeViewColumn * col
 
               for (i = 0; i < n_cols; i++)
                 {
-                  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, i);
-                  GdkPixbuf *pb;
-
                   if (lines[i] == NULL)
                     break;
 
-                  switch (col->type)
-                    {
-                    case YAD_COLUMN_CHECK:
-                    case YAD_COLUMN_RADIO:
-                      if (strcasecmp ((gchar *) lines[i], "true") == 0)
-                        gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, TRUE, -1);
-                      else
-                        gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, FALSE, -1);
-                      break;
-                    case YAD_COLUMN_NUM:
-                      gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, g_ascii_strtoll (lines[i], NULL, 10), -1);
-                      break;
-                    case YAD_COLUMN_FLOAT:
-                      gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, g_ascii_strtod (lines[i], NULL), -1);
-                      break;
-                    case YAD_COLUMN_IMAGE:
-                      pb = get_pixbuf (lines[i], YAD_SMALL_ICON);
-                      if (pb)
-                        {
-                          gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, pb, -1);
-                          g_object_unref (pb);
-                        }
-                      break;
-                    default:
-                      gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, lines[i], -1);
-                      break;
-                    }
+                  cell_set_data (&iter, i, lines[i]);
                 }
               g_strfreev (lines);
             }
@@ -673,8 +693,50 @@ double_click_cb (GtkTreeView * view, GtkTreePath * path, GtkTreeViewColumn * col
             }
         }
       else if (options.plug == -1)
-        gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+        yad_exit (YAD_RESPONSE_OK);
     }
+}
+
+static void
+select_cb (GtkTreeSelection *sel, gpointer data)
+{
+  GtkTreeModel *model;
+  GtkTreeIter iter;
+  gchar *cmd;
+  GString *args;
+  guint i, n_cols;
+
+  if (!gtk_tree_selection_get_selected (sel, &model, &iter))
+    return;
+
+  args = g_string_new ("");
+  n_cols = gtk_tree_model_get_n_columns (model);
+
+  for (i = 0; i < n_cols; i++)
+    {
+      gchar *val = cell_get_data (&iter, i);
+      if (val)
+        {
+          g_string_append_printf (args, " %s", val);
+          g_free (val);
+        }
+    }
+
+  if (g_strstr_len (options.list_data.select_action, -1, "%s"))
+    {
+      static GRegex *regex = NULL;
+
+      if (!regex)
+        regex = g_regex_new ("\%s", G_REGEX_OPTIMIZE, 0, NULL);
+      cmd = g_regex_replace_literal (regex, options.list_data.select_action, -1, 0, args->str, 0, NULL);
+    }
+  else
+    cmd = g_strdup_printf ("%s %s", options.list_data.select_action, args->str);
+  g_string_free (args, TRUE);
+
+  g_spawn_command_line_async (cmd, NULL);
+
+  g_free (cmd);
 }
 
 static void
@@ -684,8 +746,30 @@ add_row_cb (GtkMenuItem * item, gpointer data)
   GtkTreeIter iter;
 
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (list_view));
-
   gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+
+  if (options.list_data.add_action)
+    {
+      gchar *data = NULL;
+      gint exit;
+
+      g_spawn_command_line_sync (options.list_data.add_action, &data, NULL, &exit, NULL);
+      if (exit == 0)
+        {
+          guint i, n_cols = gtk_tree_model_get_n_columns (model);
+          gchar **lines = g_strsplit (data, "\n", 0);
+
+          for (i = 0; i < n_cols; i++)
+            {
+              if (lines[i] == NULL)
+                break;
+
+              cell_set_data (&iter, i, lines[i]);
+            }
+          g_strfreev (lines);
+        }
+      g_free (data);
+    }
 }
 
 static void
@@ -732,6 +816,8 @@ copy_row_cb (GtkMenuItem * item, gpointer data)
               gtk_list_store_set (GTK_LIST_STORE (model), &new_iter, i, bv, -1);
               break;
             case YAD_COLUMN_NUM:
+            case YAD_COLUMN_SIZE:
+            case YAD_COLUMN_BAR:
               gtk_tree_model_get (model, &iter, i, &iv, -1);
               gtk_list_store_set (GTK_LIST_STORE (model), &new_iter, i, iv, -1);
               break;
@@ -792,6 +878,124 @@ popup_menu_cb (GtkWidget * w, GdkEventButton * ev, gpointer data)
   return FALSE;
 }
 
+static gboolean
+row_sep_func (GtkTreeModel * m, GtkTreeIter * it, gpointer data)
+{
+  gchar *name;
+
+  if (!options.list_data.sep_value)
+    return FALSE;
+
+  gtk_tree_model_get (m, it, options.list_data.sep_column - 1, &name, -1);
+  return (strcmp (name, options.list_data.sep_value) == 0);
+}
+
+static inline void
+parse_cols_props ()
+{
+  /* set editable property for columns */
+  if (options.common_data.editable)
+    {
+      if (options.list_data.editable_cols)
+        {
+          gchar **cnum;
+          guint i = 0;
+
+          cnum = g_strsplit (options.list_data.editable_cols, ",", -1);
+
+          while (cnum[i])
+            {
+              gint num = atoi (cnum[i]);
+              if (num)
+                {
+                  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, num - 1);
+                  if (col)
+                    col->editable = TRUE;
+                }
+              i++;
+            }
+          g_strfreev (cnum);
+        }
+      else
+        {
+          GSList *c;
+          for (c = options.list_data.columns; c; c = c->next)
+            {
+              YadColumn *col = (YadColumn *) c->data;
+              col->editable = TRUE;
+            }
+        }
+    }
+
+  /* set wrap property for columns */
+  if (options.list_data.wrap_width > 0)
+    {
+      if (options.list_data.wrap_cols)
+        {
+          gchar **cnum;
+          guint i = 0;
+
+          cnum = g_strsplit (options.list_data.wrap_cols, ",", -1);
+
+          while (cnum[i])
+            {
+              gint num = atoi (cnum[i]);
+              if (num)
+                {
+                  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, num - 1);
+                  if (col)
+                    col->wrap = TRUE;
+                }
+              i++;
+            }
+          g_strfreev (cnum);
+        }
+      else
+        {
+          GSList *c;
+          for (c = options.list_data.columns; c; c = c->next)
+            {
+              YadColumn *col = (YadColumn *) c->data;
+              col->wrap = TRUE;
+            }
+        }
+    }
+
+  /* set ellipsize property for columns */
+  if (options.list_data.ellipsize)
+    {
+      if (options.list_data.ellipsize_cols)
+        {
+          gchar **cnum;
+          guint i = 0;
+
+          cnum = g_strsplit (options.list_data.ellipsize_cols, ",", -1);
+
+          while (cnum[i])
+            {
+              gint num = atoi (cnum[i]);
+              if (num)
+                {
+                  YadColumn *col = (YadColumn *) g_slist_nth_data (options.list_data.columns, num - 1);
+                  if (col)
+                    col->ellipsize = TRUE;
+                }
+              i++;
+            }
+          g_strfreev (cnum);
+        }
+      else
+        {
+          GSList *c;
+          for (c = options.list_data.columns; c; c = c->next)
+            {
+              YadColumn *col = (YadColumn *) c->data;
+              col->ellipsize = TRUE;
+            }
+        }
+    }
+}
+
 GtkWidget *
 list_create_widget (GtkWidget * dlg)
 {
@@ -809,16 +1013,20 @@ list_create_widget (GtkWidget * dlg)
       return NULL;
     }
 
+  parse_cols_props ();
+
+  /* create widget */
   w = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (w), GTK_SHADOW_ETCHED_IN);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (w), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (w), options.hscroll_policy, options.vscroll_policy);
 
   model = create_model (n_columns);
 
   list_view = gtk_tree_view_new_with_model (model);
   gtk_widget_set_name (list_view, "yad-list-widget");
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (list_view), !options.list_data.no_headers);
-  gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list_view), settings.rules_hint);
+  gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list_view), options.list_data.rules_hint);
+  gtk_tree_view_set_grid_lines (GTK_TREE_VIEW (list_view), options.list_data.grid_lines);
   gtk_tree_view_set_reorderable (GTK_TREE_VIEW (list_view), options.common_data.editable);
   g_object_unref (model);
 
@@ -826,20 +1034,9 @@ list_create_widget (GtkWidget * dlg)
 
   add_columns (n_columns);
 
-  if (options.common_data.multi && !options.list_data.checkbox && !options.list_data.radiobox)
-    {
-      GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (list_view));
-      gtk_tree_selection_set_mode (sel, GTK_SELECTION_MULTIPLE);
-    }
-
-  g_signal_connect (G_OBJECT (list_view), "row-activated", G_CALLBACK (double_click_cb), dlg);
-  g_signal_connect (G_OBJECT (list_view), "key-press-event", G_CALLBACK (list_activate_cb), dlg);
-
   /* add popup menu */
   if (options.common_data.editable)
     g_signal_connect_swapped (G_OBJECT (list_view), "button_press_event", G_CALLBACK (popup_menu_cb), NULL);
-
-  fill_data (n_columns);
 
   /* add tooltip column */
   if (options.list_data.tooltip_column > 0)
@@ -854,6 +1051,33 @@ list_create_widget (GtkWidget * dlg)
       if (col->type == YAD_COLUMN_TEXT)
         gtk_tree_view_set_search_equal_func (GTK_TREE_VIEW (list_view), regex_search, NULL, NULL);
     }
+
+  /* add row separator function */
+  if (options.list_data.sep_column > 0)
+    gtk_tree_view_set_row_separator_func (GTK_TREE_VIEW (list_view), row_sep_func, NULL, NULL);
+
+  if (options.list_data.no_selection)
+    {
+      GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (list_view));
+      gtk_tree_selection_set_mode (sel, GTK_SELECTION_NONE);
+      gtk_widget_set_can_focus (list_view, FALSE);
+    }
+  else
+    {
+      GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (list_view));
+
+      if (options.common_data.multi && !options.list_data.checkbox && !options.list_data.radiobox)
+        gtk_tree_selection_set_mode (sel, GTK_SELECTION_MULTIPLE);
+
+      if (!options.common_data.multi && options.list_data.select_action)
+        select_hndl = g_signal_connect (G_OBJECT (sel), "changed", G_CALLBACK (select_cb), NULL);
+
+      g_signal_connect (G_OBJECT (list_view), "row-activated", G_CALLBACK (double_click_cb), dlg);
+      g_signal_connect (G_OBJECT (list_view), "key-press-event", G_CALLBACK (list_activate_cb), dlg);
+    }
+
+  /* load data */
+  fill_data (n_columns);
 
   return w;
 }
@@ -881,6 +1105,8 @@ print_col (GtkTreeModel * model, GtkTreeIter * iter, gint num)
         break;
       }
     case YAD_COLUMN_NUM:
+    case YAD_COLUMN_SIZE:
+    case YAD_COLUMN_BAR:
       {
         gint64 nval;
         gtk_tree_model_get (model, iter, num, &nval, -1);
@@ -895,9 +1121,9 @@ print_col (GtkTreeModel * model, GtkTreeIter * iter, gint num)
         gdouble nval;
         gtk_tree_model_get (model, iter, num, &nval, -1);
         if (options.common_data.quoted_output)
-          g_printf ("'%lf'", nval);
+          g_printf ("'%.*f'", options.common_data.float_precision, nval);
         else
-          g_printf ("%lf", nval);
+          g_printf ("%.*f", options.common_data.float_precision, nval);
         break;
       }
     case YAD_COLUMN_IMAGE:

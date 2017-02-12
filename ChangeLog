@@ -1,3 +1,1356 @@
+2017-01-23 18:38  v1c0nt
+
+	* NEWS, configure.ac: release 0.38.2
+
+2017-01-23 18:37  v1c0nt
+
+	* src/main.c: fix enter behavior
+
+2017-01-22 08:22  v1c0nt
+
+	* src/notification.c: some cleanup
+
+2017-01-14 05:28  v1c0nt
+
+	* po/pt_BR.po: update brazilian translation
+
+2017-01-13 12:05  v1c0nt
+
+	* src/notebook.c, src/paned.c:
+
+2017-01-13 12:04  v1c0nt
+
+	* data/yad.1, src/notebook.c, src/paned.c: add names to notebook
+	  and pane widgets
+
+2017-01-12 02:58  v1c0nt
+
+	* po/pt_BR.po: update brazilian translation
+
+2017-01-08 10:25  v1c0nt
+
+	* ChangeLog, NEWS: release 0.38.1
+
+2017-01-08 10:23  v1c0nt
+
+	* configure.ac, src/about.c: bump copyright years and version
+
+2017-01-08 10:22  v1c0nt
+
+	* src/dnd.c, src/main.c, src/util.c: fix tooltip option in dnd
+	  dialog
+
+2016-12-26 04:45  v1c0nt
+
+	* po/POTFILES.in, po/ru.po, po/uk.po: fix translation
+
+2016-12-11 14:04  v1c0nt
+
+	* ChangeLog: release 0.38.0
+
+2016-12-11 09:38  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac, src/list.c: prepare to release
+
+2016-12-11 08:52  v1c0nt
+
+	* configure.ac: bump version
+
+2016-12-11 08:52  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add --add-action option to list dialog
+
+2016-12-11 08:34  v1c0nt
+
+	* src/list.c: refactoring list dialog code
+
+2016-12-03 19:51  v1c0nt
+
+	* src/main.c: add custom css provider
+
+2016-12-03 14:55  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/option.c, src/scale.c,
+	  src/yad.h: add --inc-buttons option to scale dialog
+
+2016-12-03 13:46  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/text.c, src/yad.h: add ctrl+enter behavior for all kind of
+	  dialogs
+
+2016-12-03 08:58  v1c0nt
+
+	* README, README.md: update README
+
+2016-12-03 08:56  v1c0nt
+
+	* Makefile.am, README, README.md: update README
+
+2016-12-03 08:52  v1c0nt
+
+	* README: update README
+
+2016-12-03 08:46  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/calendar.c, src/option.c,
+	  src/yad.h: backport --show-weeks option to calendar dialog
+
+2016-12-03 08:26  v1c0nt
+
+	* configure.ac, data/yad.1, src/Makefile.am, src/browser.c,
+	  src/calendar.c, src/color.c, src/entry.c, src/file.c, src/font.c,
+	  src/form.c, src/html.c, src/list.c, src/main.c,
+	  src/multi-progress.c, src/notification.c, src/option.c,
+	  src/paned.c, src/picture.c, src/print.c, src/progress.c,
+	  src/scale.c, src/text.c, src/util.c, src/yad.h: get back to
+	  legacy branch
+
+2016-11-14 13:08  v1c0nt
+
+	* src/main.c, src/option.c, src/print.c, src/yad.h: remove some
+	  deprecations
+
+2016-11-14 09:57  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/text.c, src/yad.h: add ctrl+enter behavior for all dialogs
+
+2016-11-14 09:38  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/option.c, src/scale.c,
+	  src/yad.h: add --inc-buttons option to scale dialog
+
+2016-11-13 10:27  v1c0nt
+
+	* src/util.c: fix alignment
+
+2016-11-02 20:35  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-11-02 20:34  v1c0nt
+
+	* po/ru.po, po/uk.po: update translations
+
+2016-11-02 20:33  v1c0nt
+
+	* configure.ac, src/option.c: cleanup options
+
+2016-10-29 13:04  v1c0nt
+
+	* src/Makefile.am, src/form.c, src/main.c, src/picture.c: fix
+	  makefile
+
+2016-10-29 11:45  v1c0nt
+
+	* src/multi-progress.c: fix some deprecations
+
+2016-10-29 10:06  v1c0nt
+
+	* src/picture.c: fix build
+
+2016-10-29 10:04  v1c0nt
+
+	* src/html.c: fix some deprecations
+
+2016-10-29 10:04  v1c0nt
+
+	* src/browser.c, src/form.c, src/html.c, src/main.c,
+	  src/multi-progress.c, src/util.c: fix some deprecations
+
+2016-10-29 09:52  v1c0nt
+
+	* configure.ac, src/picture.c, src/print.c, src/yad.h: bump minimal
+	  gtk version to 3.16.0
+
+2016-10-09 17:06  v1c0nt
+
+	* src/main.c: fix --no-escape handling
+
+2016-10-05 04:49  v1c0nt
+
+	* src/picture.c: add some error handling
+
+2016-10-03 04:47  v1c0nt
+
+	* configure.ac, po/ru.po, po/uk.po, src/option.c: fix typo
+
+2016-08-31 05:42  v1c0nt
+
+	* data/yad.1, src/list.c, src/option.c, src/picture.c, src/yad.h:
+	  remove some deprecations from list dialog
+
+2016-08-31 03:59  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-08-31 03:57  v1c0nt
+
+	* po/ru.po, po/uk.po: update translations
+
+2016-08-31 03:55  v1c0nt
+
+	* src/color.c, src/form.c, src/option.c, src/util.c, src/yad.h: use
+	  aplha in color dialogs. modify color arguments
+
+2016-08-30 17:33  v1c0nt
+
+	* README: update README
+
+2016-08-30 17:28  v1c0nt
+
+	* src/color.c, src/form.c, src/option.c, src/util.c, src/yad.h:
+	  port color dialogs to GtkColorChooser
+
+2016-08-30 16:47  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/calendar.c, src/option.c,
+	  src/paned.c, src/yad.h: add --show-week option to calendar
+	  widget.cleanup code
+
+2016-08-29 14:24  v1c0nt
+
+	* data/yad.1: fix typo
+
+2016-08-29 05:19  v1c0nt
+
+	* src/font.c: port font dialog to GtkFontChooser
+
+2016-08-29 04:38  v1c0nt
+
+	* data/yad.1, src/file.c: fix behavior of --filename option in file
+	  directory and appropriately update man page
+
+2016-08-29 04:32  v1c0nt
+
+	* po/ru.po, po/uk.po: update translation
+
+2016-08-29 04:31  v1c0nt
+
+	* data/yad.1, src/option.c: fix typos
+
+2016-08-28 10:48  v1c0nt
+
+	* src/file.c: rewrite --filename handling in file dialog. now
+	  dirname in arg sets the current directory for file dialog
+
+2016-08-27 01:11  v1c0nt
+
+	* data/get-lang.c, data/yad.1, po/POTFILES.in, po/ru.po, po/uk.po,
+	  src/Makefile.am, src/entry.c, src/main.c, src/option.c,
+	  src/yad.h: remove entry dialog
+
+2016-08-27 00:58  v1c0nt
+
+	* src/html.c: update html dialog
+
+2016-08-26 14:00  v1c0nt
+
+	* src/html.c: initial port to webkit2
+
+2016-08-14 09:56  v1c0nt
+
+	* configure.ac, src/Makefile.am: change default binary name to yad3
+
+2016-08-14 09:49  v1c0nt
+
+	* configure.ac, src/browser.c, src/color.c, src/entry.c,
+	  src/form.c, src/list.c, src/main.c, src/multi-progress.c,
+	  src/notification.c, src/print.c, src/progress.c, src/scale.c,
+	  src/text.c, src/util.c, src/yad.h: remove ifdef-ed gtk2 code.
+	  bump configure version
+
+2016-08-12 11:34  v1c0nt
+
+	* NEWS, configure.ac: bump version to 0.37.0. prepare to release
+
+2016-08-06 11:32  v1c0nt
+
+	* ChangeLog:
+
+2016-08-06 11:18  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-08-05 17:04  v1c0nt
+
+	* src/util.c: fix escaping
+
+2016-08-04 06:09  v1c0nt
+
+	* configure.ac, src/html.c:
+
+2016-08-04 06:09  v1c0nt
+
+	* configure.ac, src/html.c, src/main.c, src/option.c: set default
+	  dialogs borders width to 2
+
+2016-07-23 06:54  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-07-23 06:51  v1c0nt
+
+	* src/main.c, src/option.c, src/yad.h: enable negative values for
+	  posx and posy
+
+2016-07-19 12:04  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/multi-progress.c,
+	  src/option.c, src/yad.h: add perm type for multiprogress dialog
+
+2016-07-19 09:42  v1c0nt
+
+	* src/main.c: improve layout
+
+2016-06-29 12:21  v1c0nt
+
+	* src/main.c: improve layout
+
+2016-06-29 10:32  v1c0nt
+
+	* ChangeLog, data/yad.1, po/ru.po, po/uk.po, src/color.c,
+	  src/form.c, src/html.c, src/icons.c, src/list.c, src/option.c,
+	  src/picture.c, src/progress.c, src/text.c, src/yad.h: add options
+	  for setting scrollbars policy
+
+2016-06-29 09:55  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: add --close-on-unfocus option
+
+2016-06-26 05:34  v1c0nt
+
+	* po/ru.po, po/uk.po, src/option.c: move --image-path option to
+	  misc group
+
+2016-06-22 14:42  v1c0nt
+
+	* src/list.c: change wrap mode in list dialog
+
+2016-06-19 16:31  v1c0nt
+
+	* src/main.c: fix closing yad's window
+
+2016-06-19 16:19  v1c0nt
+
+	* data/yad.1: fix man page
+
+2016-06-19 13:46  v1c0nt
+
+	* src/list.c: refactoring
+
+2016-06-19 13:45  v1c0nt
+
+	* src/list.c: refactoring
+
+2016-06-19 13:35  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add --grid-lines option to list dialog
+
+2016-06-19 13:01  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add wrapping to the list dialog. add ability to
+	  specify list of wrapped, editable and ellipsized columns
+
+2016-06-19 11:02  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: added --posx and --posy options
+
+2016-06-19 09:51  v1c0nt
+
+	* configure.ac, src/calendar.c, src/entry.c, src/file.c,
+	  src/form.c, src/list.c, src/main.c, src/multi-progress.c,
+	  src/progress.c, src/text.c, src/yad.h: use GtkWindow instead of
+	  GtkDialog
+
+2016-06-17 10:33  v1c0nt
+
+	* src/list.c: fix previous commit
+
+2016-06-17 09:20  v1c0nt
+
+	* src/list.c: block select signal on clear list view
+
+2016-05-22 07:03  v1c0nt
+
+	* data/yad.1: update date in man page
+
+2016-05-22 07:03  v1c0nt
+
+	* data/yad.1: fix man page
+
+2016-05-11 16:49  v1c0nt
+
+	* ChangeLog, NEWS: release 0.36.3
+
+2016-05-11 09:30  v1c0nt
+
+	* configure.ac, src/text.c: cleanup
+
+2016-05-10 08:36  v1c0nt
+
+	* src/icons.c: fix parsing .desktop file (handle empty or
+	  nonexistence comment field)
+
+2016-05-03 12:15  v1c0nt
+
+	* configure.ac: fix --wirh-rgb option in ./configure
+
+2016-04-30 18:34  v1c0nt
+
+	* src/main.c:
+
+2016-04-30 13:45  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: release 0.36.2
+
+2016-04-30 13:43  v1c0nt
+
+	* src/html.c: fix settings title and icon for browser mode in html
+	  dialog
+
+2016-04-30 11:16  v1c0nt
+
+	* src/entry.c, src/form.c: honor precision for floats in numeric
+	  fields of form and entry dialogs
+
+2016-04-28 16:59  v1c0nt
+
+	* ChangeLog, NEWS: release 0.36.1
+
+2016-04-28 16:58  v1c0nt
+
+	* configure.ac, data/yad.1, src/form.c, src/util.c, src/yad.h: fix
+	  man page
+
+2016-04-28 10:42  v1c0nt
+
+	* src/form.c: fix set button command in form
+
+2016-04-28 08:15  v1c0nt
+
+	* src/form.c: fix set button command in form when data reads from
+	  stdin
+
+2016-04-27 16:59  v1c0nt
+
+	* src/form.c, src/util.c, src/yad.h: fix hadling double quotes in
+	  form callback
+
+2016-04-26 13:19  v1c0nt
+
+	* ChangeLog, NEWS: release 0.36.0
+
+2016-04-26 13:12  v1c0nt
+
+	* configure.ac: bump version to 0.36.0. prepare to release
+
+2016-04-26 13:05  v1c0nt
+
+	* po/ru.po, po/uk.po: update translations
+
+2016-04-26 12:58  v1c0nt
+
+	* data/yad.1, src/about.c: improve about dialog
+
+2016-04-26 10:49  v1c0nt
+
+	* ChangeLog, src/list.c, src/util.c, src/yad.h: cleanup
+
+2016-04-26 10:29  v1c0nt
+
+	* src/form.c: quote argument in form button callbacks
+
+2016-04-26 10:22  v1c0nt
+
+	* src/form.c: quote argument in form button callbacks
+
+2016-04-22 14:35  v1c0nt
+
+	* configure.ac: bump version
+
+2016-04-22 14:35  v1c0nt
+
+	* src/text.c: use Monospace as default font for text-info dialog
+
+2016-04-22 14:32  v1c0nt
+
+	* src/option.c, src/text.c, src/yad.h: add --lang option to
+	  source-info
+
+2016-04-22 14:07  v1c0nt
+
+	* configure.ac, src/Makefile.am, src/text.c, src/yad.h: add initial
+	  support of gtksourceview
+
+2016-04-15 03:58  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/icons.c, src/option.c,
+	  src/yad.h: add --monitor option to icons dialog
+
+2016-04-14 16:59  v1c0nt
+
+	* configure.ac: prepare for dir monitoring
+
+2016-04-14 15:19  v1c0nt
+
+	* src/icons.c: some cleanups in icon dialog
+
+2016-04-13 18:16  v1c0nt
+
+	* src/list.c, src/util.c:
+
+2016-04-13 15:04  v1c0nt
+
+	* src/print.c: do not close print dialog when preview is clicked
+
+2016-04-13 09:19  v1c0nt
+
+	* src/print.c: change default font for text in print dialog
+
+2016-04-04 09:18  v1c0nt
+
+	* README.md, src/entry.c: fix setting initial value for numeric
+	  text entry
+
+2016-04-03 02:44  v1c0nt
+
+	* Makefile.am, data/Makefile.am:
+
+2016-04-03 02:40  v1c0nt
+
+	* README, README.md, data/get-lang.c:
+
+2016-04-02 11:23  v1c0nt
+
+	* configure.ac, src/Makefile.am, src/form.c, src/yad.h: fix spell
+	  buildings
+
+2016-04-02 11:20  v1c0nt
+
+	* configure.ac, data/yad.1, po/ru.po, po/uk.po, src/option.c,
+	  src/text.c, src/yad.h: add optional spell checking
+
+2016-03-26 06:51  v1c0nt
+
+	* src/main.c: use CENTER_ALWAYS when --center is specified
+
+2016-03-25 06:07  v1c0nt
+
+	* TODO, data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add --no-selection option to list dialog
+
+2016-03-21 06:23  v1c0nt
+
+	* TODO: update TODO
+
+2016-03-20 20:36  v1c0nt
+
+	* TODO: update TODO
+
+2016-03-20 20:32  v1c0nt
+
+	* TODO: update TODO
+
+2016-03-20 10:54  v1c0nt
+
+	* ChangeLog, NEWS: release 0.35.0
+
+2016-03-20 10:52  v1c0nt
+
+	* data/yad.1, src/list.c, src/option.c, src/yad.h: fuck, forget to
+	  add sz column type
+
+2016-03-20 10:28  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: bump version to 0.35.0. prepare to
+	  release
+
+2016-03-20 10:12  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/font.c, src/list.c,
+	  src/option.c, src/yad.h: add BAR column to list dialog
+
+2016-03-10 08:58  v1c0nt
+
+	* src/text.c: fix setting custom bg color in text-info dialog for
+	  gtk3
+
+2016-03-07 18:51  v1c0nt
+
+	* src/entry.c, src/form.c, src/list.c: switch float output from %g
+	  to %f
+
+2016-03-02 14:17  v1c0nt
+
+	* src/file.c, src/form.c, src/util.c, src/yad.h: fix --show-hidden
+	  behavior
+
+2016-03-01 17:00  v1c0nt
+
+	* src/form.c: fix handling leading spaces in button callback of
+	  form dialog
+
+2016-02-28 07:36  v1c0nt
+
+	* README: update README
+
+2016-02-28 07:17  v1c0nt
+
+	* src/text.c: cleanup
+
+2016-02-28 07:11  v1c0nt
+
+	* configure.ac, data/yad.1, po/ru.po, po/uk.po, src/option.c,
+	  src/text.c, src/yad.h: add --show-cursor option to text dialog.
+	  place cursor at the start of file
+
+2016-02-28 06:30  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: release 0.34.2
+
+2016-02-27 17:44  v1c0nt
+
+	* ChangeLog, src/form.c: fix clearing fields in form when
+	  --cycle-read is using
+
+2016-02-25 06:03  v1c0nt
+
+	* ChangeLog, NEWS: release 0.34.1
+
+2016-02-25 06:00  v1c0nt
+
+	* configure.ac, src/main.c: fix expander. bump version to 0.34.1
+
+2016-02-23 05:31  v1c0nt
+
+	* src/form.c: improve parsing of output form buttons callbacks
+
+2016-02-23 05:24  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-02-22 09:31  v1c0nt
+
+	* NEWS:
+
+2016-02-21 16:00  v1c0nt
+
+	* ChangeLog: release 0.34.0
+
+2016-02-21 11:22  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: bump version to 0.34.0. prepare to
+	  release
+
+2016-02-21 11:00  v1c0nt
+
+	* ChangeLog, data/yad.1, src/color.c, src/form.c, src/util.c,
+	  src/yad.h: extend output of color button field in form dialog
+
+2016-02-21 09:36  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-02-21 09:27  v1c0nt
+
+	* po/ru.po: fix typo in russian translation
+
+2016-02-21 09:22  v1c0nt
+
+	* po/ru.po, po/uk.po: update translations
+
+2016-02-21 09:18  v1c0nt
+
+	* src/about.c, src/browser.c, src/calendar.c, src/color.c,
+	  src/dnd.c, src/entry.c, src/font.c, src/form.c, src/html.c,
+	  src/icons.c, src/main.c, src/notebook.c, src/notification.c,
+	  src/option.c, src/paned.c, src/picture.c, src/print.c,
+	  src/progress.c, src/scale.c, src/text.c, src/util.c: update
+	  copyright year
+
+2016-02-21 09:14  v1c0nt
+
+	* src/multi-progress.c, src/option.c, src/yad.h: add --watch-bar
+	  options for multi-progress dialog. change behavior of auto-close
+	  function
+
+2016-02-21 08:44  v1c0nt
+
+	* data/yad.1: update man page
+
+2016-02-19 06:52  v1c0nt
+
+	* configure.ac, po/ru.po, po/uk.po, src/file.c, src/form.c,
+	  src/option.c, src/yad.h: add initial support of show-hidden
+	  files. need more testing
+
+2016-02-18 19:24  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/font.c, src/option.c,
+	  src/yad.h: add --separate-output option to font dialog
+
+2016-02-17 17:31  v1c0nt
+
+	* src/font.c: add quoted output to font dialog
+
+2016-02-12 15:18  v1c0nt
+
+	* configure.ac: fix webkit package name for gtk3 build
+
+2016-02-06 07:34  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add --select-action to list dialog
+
+2016-01-17 19:30  v1c0nt
+
+	* po/POTFILES.in, po/ru.po, po/uk.po, src/html.c: fix translation
+
+2016-01-16 07:20  v1c0nt
+
+	* configure.ac: some configure improvements for build yad with gtk3
+	  and webkit. needs additional testing
+
+2016-01-13 04:41  v1c0nt
+
+	* ChangeLog, src/main.c:
+
+2016-01-11 12:35  v1c0nt
+
+	* NEWS, configure.ac: version 0.33.1
+
+2016-01-11 12:32  v1c0nt
+
+	* src/main.c: fix timeout handling
+
+2015-12-29 14:55  v1c0nt
+
+	* NEWS, data/yad.1, po/ru.po, po/uk.po: update translations and man
+	  page
+
+2015-12-29 14:47  v1c0nt
+
+	* src/entry.c, src/form.c, src/list.c, src/option.c, src/yad.h: add
+	  --float-precision option
+
+2015-12-29 14:28  v1c0nt
+
+	* src/entry.c, src/list.c:
+
+2015-12-29 14:27  v1c0nt
+
+	* src/entry.c, src/form.c, src/list.c: fix output of floating
+	  numbers (remove trailing zeroes)
+
+2015-12-28 09:35  v1c0nt
+
+	* data/yad.1, src/form.c: add FormFeed for clear the form
+
+2015-12-28 06:56  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/form.c, src/option.c,
+	  src/yad.h: add --cycle-read option for form dialog. update
+	  translations
+
+2015-12-27 14:13  v1c0nt
+
+	* NEWS, data/yad.1, src/form.c: fix form stdin handling
+
+2015-12-27 09:25  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: bump version to 0.33.0. prepare to
+	  release
+
+2015-12-26 09:42  v1c0nt
+
+	* src/notebook.c, src/paned.c: some cleanups
+
+2015-12-26 09:41  v1c0nt
+
+	* configure.ac, data/yad.1, src/main.c: some cleanups
+
+2015-12-26 09:29  v1c0nt
+
+	* src/main.c, src/notebook.c, src/paned.c: fix paned and notebook
+	  close segfault
+
+2015-12-25 09:40  v1c0nt
+
+	* src/util.c: fix extended completions
+
+2015-12-10 16:14  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/option.c: update docs
+
+2015-12-10 16:10  v1c0nt
+
+	* po/ru.po, po/uk.po: update translations
+
+2015-12-10 16:07  v1c0nt
+
+	* src/main.c, src/util.c: some fixes
+
+2015-12-10 16:03  v1c0nt
+
+	* src/entry.c, src/form.c, src/option.c, src/util.c, src/yad.h:
+	  extended completion
+
+2015-12-09 17:49  v1c0nt
+
+	* src/main.c: rewrite layout management
+
+2015-12-07 16:55  v1c0nt
+
+	* src/form.c, src/picture.c: fix focus in form, fix uninitialized
+	  warning in picture
+
+2015-12-06 09:19  v1c0nt
+
+	* src/form.c, src/util.c: fix handling empty values in form dialog
+
+2015-12-06 08:58  v1c0nt
+
+	* data/yad.1: fix man page
+
+2015-12-06 08:51  v1c0nt
+
+	* data/yad.1, src/util.c: fix typos
+
+2015-11-29 18:58  v1c0nt
+
+	* src/form.c: enable read form data from stdin
+
+2015-11-29 18:35  v1c0nt
+
+	* src/picture.c: fix fit_to_window in picture dialog
+
+2015-11-29 14:44  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/form.c, src/option.c,
+	  src/yad.h: add --focus-field option to form dialog
+
+2015-11-29 14:32  v1c0nt
+
+	* po/ru.po: correct russian translation
+
+2015-11-29 14:23  v1c0nt
+
+	* configure.ac: bump beta version
+
+2015-11-29 14:22  v1c0nt
+
+	* data/yad.1, po/POTFILES.in, po/ru.po, po/uk.po, src/Makefile.am,
+	  src/form.c, src/main.c, src/option.c, src/picture.c, src/yad.h:
+	  add --picture dialog
+
+2015-11-29 08:23  v1c0nt
+
+	* src/file.c, src/main.c, src/yad.h: change initialization style
+
+2015-11-28 06:09  v1c0nt
+
+	* src/util.c: check for NULL value in regex completion
+
+2015-11-26 13:07  v1c0nt
+
+	* src/html.c, src/main.c: improve --browser mode of html dialog.
+	  does not show default buttons and add quit menu item
+
+2015-11-24 06:28  v1c0nt
+
+	* src/util.c: fix completion regex
+
+2015-11-22 10:50  v1c0nt
+
+	* configure.ac, data/Makefile.am, data/notify-send,
+	  src/Makefile.am, src/main.c, src/option.c, src/send-notify.c,
+	  src/yad.h: remove send notify. add misc script instead
+
+2015-11-20 13:06  v1c0nt
+
+	* configure.ac, src/Makefile.am, src/main.c, src/option.c,
+	  src/send-notify.c, src/util.c, src/yad.h: initial implementation
+	  of send-notify
+
+2015-11-20 06:09  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/entry.c, src/form.c,
+	  src/option.c, src/util.c, src/yad.h: add --complete-regex option
+
+2015-11-19 22:23  v1c0nt
+
+	* configure.ac: add check for gio in configure for future use
+
+2015-11-19 22:11  v1c0nt
+
+	* po/uk.po: update ukrainian translation
+
+2015-11-19 21:43  v1c0nt
+
+	* configure.ac, po/ru.po, po/uk.po, src/option.c: optimize options
+
+2015-11-19 06:35  v1c0nt
+
+	* ChangeLog: release 0.32.0
+
+2015-11-19 05:45  v1c0nt
+
+	* ChangeLog, NEWS, data/yad.1: prepare to release
+
+2015-11-19 05:35  v1c0nt
+
+	* ChangeLog, configure.ac, data/yad.1, po/ru.po, po/uk.po,
+	  src/entry.c, src/form.c, src/option.c, src/yad.h: add
+	  --num-output option. bump version to 0.32.0
+
+2015-11-17 20:46  v1c0nt
+
+	* src/main.c: fix timeout progressbar vertical orientation for gtk3
+
+2015-11-16 16:02  v1c0nt
+
+	* src/main.c: fix timeout progress layout for gtk3
+
+2015-11-03 09:37  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: add --no-focus option
+
+2015-11-02 11:51  v1c0nt
+
+	* src/main.c: unfocus splash dialogs
+
+2015-11-01 15:53  v1c0nt
+
+	* src/main.c: use single close button as a default buttons set for
+	  dnd dialog
+
+2015-10-31 16:22  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: add --splash options. thanks to Konstantin Baierer
+	  (https://github.com/kba)
+
+2015-10-31 15:34  v1c0nt
+
+	* configure.ac, src/browser.c: add rules-hint for icons list in
+	  icon browser
+
+2015-10-31 14:54  v1c0nt
+
+	* configure.ac: release 0.31.3
+
+2015-10-31 14:52  v1c0nt
+
+	* NEWS, src/form.c: fix set default value for completion entry in
+	  form dialog
+
+2015-10-08 18:27  v1c0nt
+
+	* data/yad.1: update man page
+
+2015-10-08 10:04  v1c0nt
+
+	* ChangeLog, NEWS: release 0.32.2
+
+2015-10-08 10:01  v1c0nt
+
+	* configure.ac, src/list.c: fix segfault in list dialog when
+	  separators enabled but --sep-value is unset
+
+2015-09-29 13:04  v1c0nt
+
+	* ChangeLog:
+
+2015-09-29 13:04  v1c0nt
+
+	* ChangeLog: release 0.31.1
+
+2015-09-29 11:42  v1c0nt
+
+	* configure.ac: bump version
+
+2015-09-29 08:50  v1c0nt
+
+	* NEWS, src/html.c: fix segfault in html dialog
+
+2015-09-11 05:15  v1c0nt
+
+	* po/uk.po:
+
+2015-09-10 11:07  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: bump version. prepare to release
+
+2015-09-10 05:31  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/file.c, src/form.c,
+	  src/option.c, src/util.c, src/yad.h: enable preview for all of
+	  file chooser dialogs
+
+2015-09-09 16:34  v1c0nt
+
+	* po/ru.po, po/uk.po: remove crap from translation
+
+2015-09-09 16:19  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/file.c, src/form.c,
+	  src/option.c, src/yad.h: extend file filters and apply them to
+	  all of file dialogs
+
+2015-09-09 12:15  v1c0nt
+
+	* src/form.c, src/option.c, src/util.c, src/yad.h: add date_format
+	  default settings
+
+2015-09-09 11:25  v1c0nt
+
+	* src/option.c, src/yad.h: remove rules_hint from settings
+
+2015-09-09 11:21  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/color.c, src/option.c,
+	  src/util.c, src/yad.h: add palette options to color dialog.
+	  remove this settings fron yad settings file
+
+2015-09-09 10:29  v1c0nt
+
+	* data/yad.1, src/html.c, src/icons.c, src/text.c, src/util.c,
+	  src/yad.h: change hardcoded xdg-open to yad setting
+	  "open_command"
+
+2015-09-09 09:53  v1c0nt
+
+	* src/main.c, src/option.c, src/util.c, src/yad.h: remove obsolete
+	  dialog-sep option. code cleanup
+
+2015-09-09 05:48  v1c0nt
+
+	* ChangeLog:
+
+2015-09-08 14:22  v1c0nt
+
+	* po/ru.po, po/uk.po:
+
+2015-09-08 14:22  v1c0nt
+
+	* data/yad.1, src/option.c:
+
+2015-09-08 14:16  v1c0nt
+
+	* configure.ac: add -no-rules-hint option to list dialog
+
+2015-09-08 14:15  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/color.c, src/list.c,
+	  src/option.c, src/util.c, src/yad.h:
+
+2015-09-08 12:20  v1c0nt
+
+	* data/yad.1, src/main.c: add YAD_OPTIONS variable
+
+2015-09-08 12:03  v1c0nt
+
+	* src/main.c: fix setting icon theme
+
+2015-09-08 10:35  v1c0nt
+
+	* configure.ac:
+
+2015-09-08 10:34  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/list.c, src/option.c,
+	  src/yad.h: add separators to --list dialog
+
+2015-09-08 04:57  v1c0nt
+
+	* src/option.c: fix parsing orientation
+
+2015-09-05 06:28  v1c0nt
+
+	* ChangeLog, NEWS: update NEWS
+
+2015-09-05 05:31  v1c0nt
+
+	* configure.ac, data/yad.1: update man page. bump version to
+	  0.30.0. prepare to next release
+
+2015-09-05 05:21  v1c0nt
+
+	* po/POTFILES.in, po/ru.po, po/uk.po, src/notebook.c, src/option.c,
+	  src/paned.c, src/yad.h: add paned dialog
+
+2015-09-04 14:54  v1c0nt
+
+	* src/paned.c:
+
+2015-09-04 14:53  v1c0nt
+
+	* src/main.c:
+
+2015-09-04 11:57  v1c0nt
+
+	* src/Makefile.am, src/about.c, src/notebook.c, src/option.c,
+	  src/util.c, src/yad.h: add placeholder for paned dialog
+
+2015-08-31 08:15  v1c0nt
+
+	* po/ru.po, po/uk.po: fix translation
+
+2015-08-27 06:04  v1c0nt
+
+	* data/yad.1, src/option.c: rename --parent to --parent-win
+
+2015-08-26 16:16  v1c0nt
+
+	* configure.ac: bump version
+
+2015-08-26 16:15  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: add --parent option
+
+2015-08-26 15:39  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/option.c, src/text.c,
+	  src/yad.h: add --uri-color option for text dialog
+
+2015-08-01 16:34  v1c0nt
+
+	* NEWS, src/about.c, src/browser.c, src/calendar.c, src/color.c,
+	  src/dnd.c, src/entry.c, src/file.c, src/font.c, src/form.c,
+	  src/html.c, src/icons.c, src/list.c, src/multi-progress.c,
+	  src/notebook.c, src/notification.c, src/option.c, src/print.c,
+	  src/progress.c, src/scale.c, src/text.c, src/util.c, src/yad.h:
+	  update copyright years
+
+2015-07-29 09:50  v1c0nt
+
+	* configure.ac, src/main.c: fix build with --disable-html
+
+2015-07-15 12:58  v1c0nt
+
+	* ChangeLog:
+
+2015-07-15 12:58  v1c0nt
+
+	* ChangeLog, NEWS, configure.ac: release 0.29.0
+
+2015-07-15 12:51  v1c0nt
+
+	* ChangeLog, po/ru.po, po/uk.po, src/html.c: set default html
+	  encoding from locale
+
+2015-07-15 12:23  v1c0nt
+
+	* src/html.c, src/main.c: fix focus problems in html dialog
+
+2015-07-14 11:22  v1c0nt
+
+	* src/form.c: fix output of empty or unset fields in form dialog
+
+2015-07-14 11:05  v1c0nt
+
+	* src/html.c: set default encoding to utf-8 in html dialog
+
+2015-07-07 12:04  v1c0nt
+
+	* src/html.c: add custom file chooser handler for html dialog
+
+2015-06-02 16:58  v1c0nt
+
+	* configure.ac, data/yad.1, po/ru.po, po/uk.po, src/html.c,
+	  src/main.c, src/option.c, src/yad.h: add --no-escape option
+
+2015-05-04 11:13  v1c0nt
+
+	* po/ru.po, po/uk.po, src/about.c, src/main.c: show current gtk
+	  version in --version and --about dialog
+
+2015-05-04 11:02  v1c0nt
+
+	* src/file.c, src/form.c, src/html.c, src/util.c, src/yad.h: fix
+	  build with gcc 5.x
+
+2015-03-31 09:00  v1c0nt
+
+	* ChangeLog, po/ru.po, po/uk.po, src/about.c: extend about info
+
+2015-03-12 10:25  v1c0nt
+
+	* NEWS: release 0.28.1
+
+2015-03-10 11:50  v1c0nt
+
+	* ChangeLog, NEWS:
+
+2015-03-10 11:36  v1c0nt
+
+	* configure.ac: bump version to 0.28.1
+
+2015-03-10 10:44  v1c0nt
+
+	* src/form.c: fix output by row in form dialog
+
+2015-03-06 13:53  v1c0nt
+
+	* ChangeLog, NEWS: release 0.28.0
+
+2015-03-06 11:15  v1c0nt
+
+	* ChangeLog, src/html.c:
+
+2015-03-06 10:28  v1c0nt
+
+	* configure.ac: bump version to 0.28.0. preparing for release
+
+2015-03-06 10:27  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/form.c, src/option.c,
+	  src/yad.h: add completion entry for form dialog
+
+2015-03-06 08:55  v1c0nt
+
+	* src/list.c: fix setup arguments for double-click action in list
+	  dialog
+
+2015-03-05 16:57  v1c0nt
+
+	* README: update README
+
+2015-03-05 15:36  v1c0nt
+
+	* data/yad.1: fix man page
+
+2015-03-05 15:26  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po: update data
+
+2015-03-05 15:19  v1c0nt
+
+	* ChangeLog, src/form.c, src/option.c, src/yad.h: add
+	  --output-by-row option to form dialog
+
+2015-03-05 14:41  v1c0nt
+
+	* src/multi-progress.c: previous doesn't need in multiprogress
+
+2015-03-05 14:31  v1c0nt
+
+	* src/entry.c, src/form.c, src/multi-progress.c, src/util.c: add
+	  mnemonic possibility for labels in some dialog
+
+2015-03-04 09:16  v1c0nt
+
+	* src/print.c: fix printing to a file
+
+2015-03-03 16:15  v1c0nt
+
+	* data/yad.1: update man page
+
+2015-03-03 11:51  v1c0nt
+
+	* data/yad.1: update man page
+
+2015-03-03 11:18  v1c0nt
+
+	* configure.ac, po/ru.po, po/uk.po, src/html.c, src/option.c,
+	  src/yad.h: completely add html dialog
+
+2015-03-02 16:59  v1c0nt
+
+	* src/html.c: some changes in html
+
+2015-03-02 16:44  v1c0nt
+
+	* src/option.c, src/yad.h: some changes in html
+
+2015-03-02 16:41  v1c0nt
+
+	* src/html.c: some changes in html
+
+2015-03-02 16:40  v1c0nt
+
+	* configure.ac: some changes in html
+
+2015-03-02 15:21  v1c0nt
+
+	* configure.ac, src/Makefile.am, src/main.c, src/option.c,
+	  src/text.c, src/yad.h: add initial html dialog
+
+2015-02-18 07:44  v1c0nt
+
+	* po/ru.po, po/uk.po:
+
+2015-02-04 06:10  v1c0nt
+
+	* po/ru.po, po/uk.po, src/option.c: update translation
+
+2015-01-13 13:00  v1c0nt
+
+	* configure.ac, src/multi-progress.c, src/notebook.c: set labels in
+	  pulsate progress bar in multi-progress dialog
+
+2014-08-28 07:18  v1c0nt
+
+	* configure.ac: fix setting combo field values in form dialog
+
+2014-08-28 07:17  v1c0nt
+
+	* src/form.c:
+
+2014-08-18 12:36  v1c0nt
+
+	* data/yad.1, src/color.c: fix rgba output in color dialog
+
+2014-08-18 11:16  v1c0nt
+
+	* data/yad.1, src/color.c: fix output order of opacity in color
+	  dialog
+
+2014-08-18 10:56  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/option.c: update translation
+	  and man page
+
+2014-08-18 10:08  v1c0nt
+
+	* configure.ac, src/color.c, src/option.c, src/yad.h: add --alpha
+	  and --mode options for color dialog
+
+2014-08-01 09:24  v1c0nt
+
+	* ChangeLog: release 0.27.0
+
+2014-08-01 08:33  v1c0nt
+
+	* NEWS, configure.ac: bump version to 0.27.0. prepare to release
+
+2014-08-01 07:38  v1c0nt
+
+	* data/yad.1, po/ru.po, po/uk.po, src/main.c, src/option.c,
+	  src/yad.h: add --gtkrc option
+
+2014-07-23 18:37  v1c0nt
+
+	* configure.ac, src/text.c: replace g_memmove with memmove
+
+2014-07-23 07:42  v1c0nt
+
+	* src/form.c, src/main.c:
+
+2014-07-22 08:25  v1c0nt
+
+	* src/list.c, src/main.c: add shared memory header. fix condition
+	  for detect expanding columns in list dialog
+
 2014-04-18 07:50  v1c0nt
 
 	* data/yad.1: update man page

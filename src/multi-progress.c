@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <stdio.h>
@@ -28,6 +28,13 @@
 
 static GSList *progress_bars = NULL;
 static guint nbars = 0;
+
+static gboolean
+pulsate_progress_bar (GtkProgressBar *bar)
+{
+  gtk_progress_bar_pulse (bar);
+  return TRUE;
+}
 
 static gboolean
 handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
@@ -52,8 +59,7 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
 
           do
             {
-              status =
-                g_io_channel_read_line_string (channel, string, NULL, &err);
+              status = g_io_channel_read_line_string (channel, string, NULL, &err);
 
               while (gtk_events_pending ())
                 gtk_main_iteration ();
@@ -82,21 +88,42 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
           pb = GTK_PROGRESS_BAR (g_slist_nth_data (progress_bars, num));
           b = (YadProgressBar *) g_slist_nth_data (options.multi_progress_data.bars, num);
 
-          if (b->type == YAD_PROGRESS_PULSE)
-            gtk_progress_bar_pulse (pb);
+          if (value[1] && value[1][0] == '#')
+            {
+              gchar *match;
+
+              /* We have a comment, so let's try to change the label */
+              match = g_strcompress (value[1] + 1);
+              strip_new_line (match);
+              gtk_progress_bar_set_text (pb, match);
+              g_free (match);
+            }
           else
             {
-              if (value[1] && value[1][0] == '#')
+              if (value[1] && b->type == YAD_PROGRESS_PULSE)
+                gtk_progress_bar_pulse (pb);
+              else if (value[1] && b->type == YAD_PROGRESS_PERM)
                 {
-                  gchar *match, *p;
-
-                  /* We have a comment, so let's try to change the label */
-                  match = g_strcompress (value[1] + 1);
-                  p = g_strrstr (match, "\n");
-                  if (p)
-                    *p = '\0';
-                  gtk_progress_bar_set_text (pb, match);
-                  g_free (match);
+                  guint id;
+                  
+                  if (strncmp (value[1], "start", 5) == 0)
+                    {
+                      id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (pb), "id"));
+                      if (id == 0)
+                        {
+                          id = g_timeout_add (100, (GSourceFunc) pulsate_progress_bar, pb);
+                          g_object_set_data (G_OBJECT (pb), "id", GINT_TO_POINTER (id));
+                        }
+                    }
+                  else if (strncmp (value[1], "stop", 4) == 0)
+                    {
+                      id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (pb), "id"));
+                      if (id > 0)
+                        {
+                          g_source_remove (id);
+                          g_object_set_data (G_OBJECT (pb), "id", GINT_TO_POINTER (0));
+                        }                      
+                    }                    
                 }
               else
                 {
@@ -110,23 +137,43 @@ handle_stdin (GIOChannel * channel, GIOCondition condition, gpointer data)
                   else
                     gtk_progress_bar_set_fraction (pb, percentage / 100.0);
 
-                  /* Check if all of progres bars reach 100% */
+                  /* Check if all of progress bars reaches 100% */
                   if (options.progress_data.autoclose && options.plug == -1)
                     {
-                      GSList *p;
+                      guint i;
                       gboolean close = TRUE;
+                      gboolean need_close = FALSE;
 
-                      for (p = progress_bars; p; p = p->next)
+                      if (options.multi_progress_data.watch_bar > 0 && options.multi_progress_data.watch_bar <= nbars)
                         {
-                          if (gtk_progress_bar_get_fraction (GTK_PROGRESS_BAR (p->data)) != 1.0)
+                          GtkProgressBar *cpb = GTK_PROGRESS_BAR (g_slist_nth_data (progress_bars,
+                                                                                    options.multi_progress_data.watch_bar - 1));
+
+                          need_close = TRUE;
+                          if (gtk_progress_bar_get_fraction (cpb) != 1.0)
+                            close = FALSE;
+                        }
+                      else
+                        {
+                          for (i = 0; i < nbars; i++)
                             {
-                              close = FALSE;
-                              break;
+                              GtkProgressBar *cpb = GTK_PROGRESS_BAR (g_slist_nth_data (progress_bars, i));
+                              YadProgressBar *cb = (YadProgressBar *) g_slist_nth_data (options.multi_progress_data.bars, i);
+
+                              if (cb->type != YAD_PROGRESS_PULSE)
+                                {
+                                  need_close = TRUE;
+                                  if (gtk_progress_bar_get_fraction (cpb) != 1.0)
+                                    {
+                                      close = FALSE;
+                                      break;
+                                    }
+                                }
                             }
                         }
 
-                      if (close)
-                        gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+                      if (need_close && close)
+                        yad_exit (YAD_RESPONSE_OK);
                     }
                 }
             }
@@ -173,10 +220,10 @@ multi_progress_create_widget (GtkWidget * dlg)
 
       /* add label */
       l = gtk_label_new (NULL);
-      if (!options.data.no_markup)
-        gtk_label_set_markup (GTK_LABEL (l), p->name);
-      else
+      if (options.data.no_markup)
         gtk_label_set_text (GTK_LABEL (l), p->name);
+      else
+        gtk_label_set_markup (GTK_LABEL (l), p->name);
       gtk_misc_set_alignment (GTK_MISC (l), options.common_data.align, 0.5);
       if (options.common_data.vertical)
 #if !GTK_CHECK_VERSION(3,0,0)

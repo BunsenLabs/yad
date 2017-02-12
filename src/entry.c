@@ -14,10 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
-
-#include <gdk/gdkkeysyms.h>
 
 #include "yad.h"
 
@@ -28,7 +26,7 @@ static void
 entry_activate_cb (GtkEntry * entry, gpointer data)
 {
   if (options.plug == -1)
-    gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+    yad_exit (YAD_RESPONSE_OK);
 }
 
 static gboolean
@@ -41,7 +39,7 @@ combo_activate_cb (GtkWidget * w, GdkEventKey * ev, gpointer data)
 #endif
     {
       if (options.plug == -1)
-        gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+        yad_exit (YAD_RESPONSE_OK);
       return TRUE;
     }
   return FALSE;
@@ -56,12 +54,12 @@ icon_cb (GtkEntry * entry, GtkEntryIconPosition pos, GdkEventButton * event, gpo
 
       switch (pos)
         {
-          case GTK_ENTRY_ICON_PRIMARY:
-            cmd = options.entry_data.licon_action;
-            break;
-          case GTK_ENTRY_ICON_SECONDARY:
-            cmd = options.entry_data.ricon_action;
-            break;
+        case GTK_ENTRY_ICON_PRIMARY:
+          cmd = options.entry_data.licon_action;
+          break;
+        case GTK_ENTRY_ICON_SECONDARY:
+          cmd = options.entry_data.ricon_action;
+          break;
         }
 
       if (cmd)
@@ -115,7 +113,7 @@ create_completion_model (void)
 GtkWidget *
 entry_create_widget (GtkWidget * dlg)
 {
-  GtkWidget *c, *w = NULL;
+  GtkWidget *c, *l = NULL, *w = NULL;
 
 #if !GTK_CHECK_VERSION(3,0,0)
   w = gtk_hbox_new (FALSE, 5);
@@ -125,11 +123,11 @@ entry_create_widget (GtkWidget * dlg)
 
   if (options.entry_data.entry_label)
     {
-      GtkWidget *l = gtk_label_new (NULL);
-      if (!options.data.no_markup)
-        gtk_label_set_markup (GTK_LABEL (l), options.entry_data.entry_label);
+      l = gtk_label_new (NULL);
+      if (options.data.no_markup)
+        gtk_label_set_text_with_mnemonic (GTK_LABEL (l), options.entry_data.entry_label);
       else
-        gtk_label_set_text (GTK_LABEL (l), options.entry_data.entry_label);
+        gtk_label_set_markup_with_mnemonic (GTK_LABEL (l), options.entry_data.entry_label);
       gtk_widget_set_name (l, "yad-entry-label");
       gtk_box_pack_start (GTK_BOX (w), l, FALSE, FALSE, 1);
     }
@@ -143,6 +141,7 @@ entry_create_widget (GtkWidget * dlg)
       max = 65535.0;
       step = 1.0;
       prec = 0;
+      val = 0.0;
 
       if (options.extra_data && options.extra_data[0])
         {
@@ -185,14 +184,14 @@ entry_create_widget (GtkWidget * dlg)
               g_printerr (_("Initial value greater than maximum.\n"));
               val = max;
             }
-
-          gtk_spin_button_set_value (GTK_SPIN_BUTTON (c), val);
         }
+
+      gtk_spin_button_set_value (GTK_SPIN_BUTTON (c), val);
     }
   else if (!options.entry_data.completion && options.extra_data && *options.extra_data)
     {
       gint active, i;
-      
+
       if (options.common_data.editable || settings.combo_always_editable)
         {
 #if GTK_CHECK_VERSION(2,24,0)
@@ -228,7 +227,8 @@ entry_create_widget (GtkWidget * dlg)
           is_combo = TRUE;
         }
 
-      i = 0; active = -1;
+      i = 0;
+      active = -1;
       while (options.extra_data[i] != NULL)
         {
           if (options.entry_data.entry_text &&
@@ -281,6 +281,10 @@ entry_create_widget (GtkWidget * dlg)
           g_object_unref (completion_model);
 
           gtk_entry_completion_set_text_column (completion, 0);
+
+          if (options.common_data.complete != YAD_COMPLETE_SIMPLE)
+            gtk_entry_completion_set_match_func (completion, check_complete, NULL, NULL);
+
           g_object_unref (completion);
         }
 
@@ -300,6 +304,9 @@ entry_create_widget (GtkWidget * dlg)
         }
     }
 
+  if (l)
+    gtk_label_set_mnemonic_widget (GTK_LABEL (l), entry);
+
   if (!is_combo)
     g_signal_connect (G_OBJECT (entry), "activate", G_CALLBACK (entry_activate_cb), dlg);
   else
@@ -317,13 +324,23 @@ void
 entry_print_result (void)
 {
   if (options.entry_data.numeric)
-    g_print ("%lf\n", gtk_spin_button_get_value (GTK_SPIN_BUTTON (entry)));
+    {
+      guint prec = gtk_spin_button_get_digits (GTK_SPIN_BUTTON (entry));
+      g_print ("%.*f\n", prec, gtk_spin_button_get_value (GTK_SPIN_BUTTON (entry)));
+    }
   else if (is_combo)
+    {
+      if (options.common_data.num_output)
+        g_print ("%d\n", gtk_combo_box_get_active (GTK_COMBO_BOX (entry)) + 1);
+      else
+        {
 #if GTK_CHECK_VERSION(2,24,0)
-    g_print ("%s\n", gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)));
+          g_print ("%s\n", gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)));
 #else
-    g_print ("%s\n", gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)));
+          g_print ("%s\n", gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)));
 #endif
+        }
+    }
   else
     g_print ("%s\n", gtk_entry_get_text (GTK_ENTRY (entry)));
 }

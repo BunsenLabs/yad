@@ -14,88 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
+
+#include <glib/gprintf.h>
 
 #include "yad.h"
 
 static GtkWidget *filechooser;
 
-static gchar *normal_path;
-static gchar *large_path;
-
 static void
 file_activated_cb (GtkFileChooser * chooser, gpointer data)
 {
   if (options.plug == -1)
-    gtk_dialog_response (GTK_DIALOG (data), YAD_RESPONSE_OK);
+    yad_exit (YAD_RESPONSE_OK);
 }
 
-static void
-update_preview_cb (GtkFileChooser * chooser, gpointer data)
+gboolean
+file_confirm_overwrite (GtkWidget * dlg)
 {
-  gchar *uri;
-  GtkWidget *p = GTK_WIDGET (data);
-
-  uri = gtk_file_chooser_get_preview_uri (chooser);
-  if (uri)
-    {
-      gchar *file;
-      GChecksum *chs;
-      GdkPixbuf *pb;
-
-      chs = g_checksum_new (G_CHECKSUM_MD5);
-      g_checksum_update (chs, uri, -1);
-      /* first try to get preview from large thumbnail */
-      file = g_strdup_printf ("%s/%s.png", large_path, g_checksum_get_string (chs));
-      if (g_file_test (file, G_FILE_TEST_EXISTS))
-        pb = gdk_pixbuf_new_from_file (file, NULL);
-      else
-        {
-          /* try to get preview from normal thumbnail */
-          g_free (file);
-          file = g_strdup_printf ("%s/%s.png", normal_path, g_checksum_get_string (chs));
-          if (g_file_test (file, G_FILE_TEST_EXISTS))
-            pb = gdk_pixbuf_new_from_file (file, NULL);
-          else
-            {
-              /* try to create it */
-              g_free (file);
-              file = g_filename_from_uri (uri, NULL, NULL);
-              pb = gdk_pixbuf_new_from_file_at_size (file, 256, 256, NULL);
-              g_free (file);
-              if (pb)
-                {
-                  /* save thumbnail */
-                  g_mkdir_with_parents (large_path, 0755);
-                  file = g_strdup_printf ("%s/%s.png", large_path, g_checksum_get_string (chs));
-                  gdk_pixbuf_save (pb, file, "png", NULL, NULL);
-                }
-            }
-        }
-      g_checksum_free (chs);
-
-      if (pb)
-        {
-          gtk_image_set_from_pixbuf (GTK_IMAGE (p), pb);
-          g_object_unref (pb);
-          gtk_file_chooser_set_preview_widget_active (chooser, TRUE);
-        }
-      else
-        gtk_file_chooser_set_preview_widget_active (chooser, FALSE);
-
-      g_free (uri);
-    }
-  else
-    gtk_file_chooser_set_preview_widget_active (chooser, FALSE);
-}
-
-void
-confirm_overwrite_cb (GtkDialog * dlg, gint id, gpointer data)
-{
-  if (id != YAD_RESPONSE_OK)
-    return;
-
   if (options.file_data.save && options.file_data.confirm_overwrite && !options.common_data.multi)
     {
       gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filechooser));
@@ -113,16 +50,18 @@ confirm_overwrite_cb (GtkDialog * dlg, gint id, gpointer data)
           r = gtk_dialog_run (GTK_DIALOG (d));
           gtk_widget_destroy (d);
           if (r != GTK_RESPONSE_YES)
-            g_signal_stop_emission_by_name (dlg, "response");
+            return FALSE;
         }
     }
+
+  return TRUE;
 }
 
 GtkWidget *
 file_create_widget (GtkWidget * dlg)
 {
   GtkWidget *w;
-  gchar *dir, *basename;
+  GList *filt;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
 
   if (options.file_data.directory)
@@ -143,21 +82,26 @@ file_create_widget (GtkWidget * dlg)
 
   if (options.common_data.uri)
     {
-      dir = g_path_get_dirname (options.common_data.uri);
-
-      if (g_path_is_absolute (options.common_data.uri) == TRUE)
-        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (w), dir);
-
-      if (options.common_data.uri[strlen (options.common_data.uri) - 1] != '/')
+      if (!options.file_data.directory && g_file_test (options.common_data.uri, G_FILE_TEST_IS_DIR))
+        gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (w), options.common_data.uri);
+      else
         {
-          basename = g_path_get_basename (options.common_data.uri);
-          if (options.file_data.save)
-            gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (w), basename);
-          else
-            gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (w), options.common_data.uri);
-          g_free (basename);
+          gchar *dir = g_path_get_dirname (options.common_data.uri);
+
+          if (g_path_is_absolute (options.common_data.uri) == TRUE)
+            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (w), dir);
+
+          if (options.common_data.uri[strlen (options.common_data.uri) - 1] != '/')
+            {
+              gchar *basename = g_path_get_basename (options.common_data.uri);
+              if (options.file_data.save)
+                gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (w), basename);
+              else
+                gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (w), options.common_data.uri);
+              g_free (basename);
+            }
+          g_free (dir);
         }
-      g_free (dir);
     }
   else
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (w), g_get_current_dir ());
@@ -165,66 +109,19 @@ file_create_widget (GtkWidget * dlg)
   if (options.common_data.multi)
     gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (w), TRUE);
 
+  /* add preview */
   if (options.common_data.preview)
     {
-      /* add widget */
       GtkWidget *p = gtk_image_new ();
       gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (w), p);
-      g_signal_connect (w, "update-preview", G_CALLBACK (update_preview_cb), p);
-      /* init thumbnails path */
-      normal_path = g_build_filename (g_get_user_cache_dir (), "thumbnails", "normal", NULL);
-      large_path = g_build_filename (g_get_user_cache_dir (), "thumbnails", "large", NULL);
+      g_signal_connect (w, "update-preview", G_CALLBACK (update_preview), p);
     }
 
-  if (options.file_data.filter)
-    {
-      /* Filter format: Executables | *.exe *.bat *.com */
-      gint filter_i;
+  /* add filters */
+  for (filt = options.common_data.filters; filt; filt = filt->next)
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (w), GTK_FILE_FILTER (filt->data));
 
-      for (filter_i = 0; options.file_data.filter[filter_i]; filter_i++)
-        {
-          GtkFileFilter *filter = gtk_file_filter_new ();
-          gchar *filter_str = options.file_data.filter[filter_i];
-          gchar **pattern, **patterns;
-          gchar *name = NULL;
-          gint i;
-
-          /* Set name */
-          for (i = 0; filter_str[i] != '\0'; i++)
-            {
-              if (filter_str[i] == '|')
-                break;
-            }
-
-          if (filter_str[i] == '|')
-            name = g_strstrip (g_strndup (filter_str, i));
-
-          if (name)
-            {
-              gtk_file_filter_set_name (filter, name);
-
-              /* Point i to the right position for split */
-              for (++i; filter_str[i] == ' '; i++);
-            }
-          else
-            {
-              gtk_file_filter_set_name (filter, filter_str);
-              i = 0;
-            }
-
-          /* Get patterns */
-          patterns = g_strsplit_set (filter_str + i, " ", -1);
-
-          for (pattern = patterns; *pattern; pattern++)
-            gtk_file_filter_add_pattern (filter, *pattern);
-
-          g_free (name);
-          g_strfreev (patterns);
-
-          gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (w), filter);
-        }
-    }
-
+  g_signal_connect (w, "map", G_CALLBACK (filechooser_mapped), NULL);
   g_signal_connect (w, "file-activated", G_CALLBACK (file_activated_cb), dlg);
 
   return w;

@@ -1,4 +1,4 @@
-AM_CPPFLAGS = 					\
+AM_CPPFLAGS =                           \
 	-DLOCALEDIR=\""$(datadir)/locale"\"	\
 	@DISABLE_DEPRECATED@
 
@@ -19,6 +19,8 @@ yad_SOURCES = 			\
 	notebook.c		\
 	notification.c		\
 	option.c		\
+	paned.c			\
+	picture.c       \
 	print.c			\
 	progress.c		\
 	scale.c			\
@@ -28,8 +30,12 @@ yad_SOURCES = 			\
 	yad.h			\
 	calendar.xpm
 
-yad_CFLAGS = $(GTK_CFLAGS)
-yad_LDADD = $(GTK_LIBS)
+if HTML
+yad_SOURCES += html.c
+endif
+
+yad_CFLAGS = $(GTK_CFLAGS) $(HTML_CFLAGS) $(SPELL_CFLAGS) $(SOURCEVIEW_CFLAGS)
+yad_LDADD = $(GTK_LIBS) $(HTML_LIBS) $(SPELL_LIBS) $(SOURCEVIEW_LIBS)
 
 if BUILD_IB
 bin_PROGRAMS += yad-icon-browser

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <sys/stat.h>
@@ -54,7 +54,7 @@ free_menu_data (gpointer data, gpointer udata)
 }
 
 static void
-parse_menu_str (gchar *str)
+parse_menu_str (gchar * str)
 {
   gchar **menu_vals;
   gint i = 0;
@@ -128,14 +128,6 @@ set_icon (void)
     }
   else
     gtk_status_icon_set_from_icon_name (status_icon, icon);
-}
-
-static gboolean
-icon_size_changed_cb (GtkStatusIcon * icon, gint size, gpointer data)
-{
-  icon_size = size;
-  set_icon ();
-  return TRUE;
 }
 
 static gboolean
@@ -367,7 +359,6 @@ yad_notification_run ()
   GIOChannel *channel = NULL;
 
   status_icon = gtk_status_icon_new ();
-  g_signal_connect (status_icon, "size-changed", G_CALLBACK (icon_size_changed_cb), NULL);
 
   if (options.data.dialog_text)
     {

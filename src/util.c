@@ -14,8 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +29,6 @@
 #include <sys/shm.h>
 
 #include "yad.h"
-
-#define SETTINGS_FILE "yad.conf"
 
 YadSettings settings;
 
@@ -41,22 +43,17 @@ read_settings (void)
   settings.timeout = 0;
   settings.to_indicator = "none";
   settings.show_remain = FALSE;
-  settings.rules_hint = TRUE;
-  settings.always_selected = FALSE;
-#if !GTK_CHECK_VERSION(2,22,0)
-  settings.dlg_sep = FALSE;
-#endif
   settings.combo_always_editable = FALSE;
-  settings.show_gtk_palette = FALSE;
-  settings.expand_palette = FALSE;
-  settings.term = "xterm -e %s";
+  settings.term = "xterm -e '%s'";
+  settings.open_cmd = "xdg-open '%s'";
+  settings.date_format = "%x";
   settings.ignore_unknown = TRUE;
   settings.max_tab = 100;
 
   settings.print_settings = NULL;
   settings.page_setup = NULL;
 
-  filename = g_build_filename (g_get_user_config_dir (), SETTINGS_FILE, NULL);
+  filename = g_build_filename (g_get_user_config_dir (), YAD_SETTINGS_FILE, NULL);
 
   if (g_file_test (filename, G_FILE_TEST_EXISTS))
     {
@@ -64,10 +61,6 @@ read_settings (void)
 
       if (g_key_file_load_from_file (kf, filename, G_KEY_FILE_NONE, NULL))
         {
-#if !GTK_CHECK_VERSION(2,22,0)
-          if (g_key_file_has_key (kf, "General", "dialog_separator", NULL))
-            settings.dlg_sep = g_key_file_get_boolean (kf, "General", "dialog_separator", NULL);
-#endif
           if (g_key_file_has_key (kf, "General", "width", NULL))
             settings.width = g_key_file_get_integer (kf, "General", "width", NULL);
           if (g_key_file_has_key (kf, "General", "height", NULL))
@@ -78,18 +71,14 @@ read_settings (void)
             settings.to_indicator = g_key_file_get_string (kf, "General", "timeout_indicator", NULL);
           if (g_key_file_has_key (kf, "General", "show_remain", NULL))
             settings.show_remain = g_key_file_get_boolean (kf, "General", "show_remain", NULL);
-          if (g_key_file_has_key (kf, "General", "rules_hint", NULL))
-            settings.rules_hint = g_key_file_get_boolean (kf, "General", "rules_hint", NULL);
-          if (g_key_file_has_key (kf, "General", "always_selected", NULL))
-            settings.always_selected = g_key_file_get_boolean (kf, "General", "always_selected", NULL);
           if (g_key_file_has_key (kf, "General", "combo_always_editable", NULL))
             settings.combo_always_editable = g_key_file_get_boolean (kf, "General", "combo_always_editable", NULL);
-          if (g_key_file_has_key (kf, "General", "show_gtk_palette", NULL))
-            settings.show_gtk_palette = g_key_file_get_boolean (kf, "General", "show_gtk_palette", NULL);
-          if (g_key_file_has_key (kf, "General", "expand_palette", NULL))
-            settings.expand_palette = g_key_file_get_boolean (kf, "General", "expand_palette", NULL);
           if (g_key_file_has_key (kf, "General", "terminal", NULL))
             settings.term = g_key_file_get_string (kf, "General", "terminal", NULL);
+          if (g_key_file_has_key (kf, "General", "open_command", NULL))
+            settings.open_cmd = g_key_file_get_string (kf, "General", "open_command", NULL);
+          if (g_key_file_has_key (kf, "General", "date_format", NULL))
+            settings.date_format = g_key_file_get_string (kf, "General", "date_format", NULL);
           if (g_key_file_has_key (kf, "General", "ignore_unknown_options", NULL))
             settings.ignore_unknown = g_key_file_get_boolean (kf, "General", "ignore_unknown_options", NULL);
           if (g_key_file_has_key (kf, "General", "max_tab", NULL))
@@ -115,37 +104,29 @@ write_settings (void)
 
   kf = g_key_file_new ();
 
-#if !GTK_CHECK_VERSION(2,22,0)
-  g_key_file_set_boolean (kf, "General", "dialog_separator", settings.dlg_sep);
-  g_key_file_set_comment (kf, "General", "dialog_separator", "Enable separator between dialog and buttons", NULL);
-#endif
   g_key_file_set_integer (kf, "General", "width", settings.width);
-  g_key_file_set_comment (kf, "General", "width", "Default dialog width", NULL);
+  g_key_file_set_comment (kf, "General", "width", " Default dialog width", NULL);
   g_key_file_set_integer (kf, "General", "height", settings.height);
-  g_key_file_set_comment (kf, "General", "height", "Default dialog height", NULL);
+  g_key_file_set_comment (kf, "General", "height", " Default dialog height", NULL);
   g_key_file_set_integer (kf, "General", "timeout", settings.timeout);
-  g_key_file_set_comment (kf, "General", "timeout", "Default timeout (0 for no timeout)", NULL);
+  g_key_file_set_comment (kf, "General", "timeout", " Default timeout (0 for no timeout)", NULL);
   g_key_file_set_string (kf, "General", "timeout_indicator", settings.to_indicator);
   g_key_file_set_comment (kf, "General", "timeout_indicator",
-                          "Position of timeout indicator (top, bottom, left, right, none)", NULL);
+                          " Position of timeout indicator (top, bottom, left, right, none)", NULL);
   g_key_file_set_boolean (kf, "General", "show_remain", settings.show_remain);
-  g_key_file_set_comment (kf, "General", "show_remain", "Show remain seconds in timeout indicator", NULL);
-  g_key_file_set_boolean (kf, "General", "rules_hint", settings.rules_hint);
-  g_key_file_set_comment (kf, "General", "rules_hint", "Enable rules hints in list widget", NULL);
-  g_key_file_set_boolean (kf, "General", "always_selected", settings.always_selected);
-  g_key_file_set_comment (kf, "General", "always_selected", "List widget always have a selection", NULL);
+  g_key_file_set_comment (kf, "General", "show_remain", " Show remain seconds in timeout indicator", NULL);
   g_key_file_set_boolean (kf, "General", "combo_always_editable", settings.combo_always_editable);
-  g_key_file_set_comment (kf, "General", "combo_always_editable", "Combo-box in entry dialog is always editable", NULL);
-  g_key_file_set_boolean (kf, "General", "show_gtk_palette", settings.show_gtk_palette);
-  g_key_file_set_comment (kf, "General", "show_gtk_palette", "Show GtkColorSelection palette", NULL);
-  g_key_file_set_boolean (kf, "General", "expand_palette", settings.expand_palette);
-  g_key_file_set_comment (kf, "General", "expand_palette", "Expand list of predefined colors in color dialog", NULL);
+  g_key_file_set_comment (kf, "General", "combo_always_editable", " Combo-box in entry dialog is always editable", NULL);
   g_key_file_set_string (kf, "General", "terminal", settings.term);
-  g_key_file_set_comment (kf, "General", "terminal", "Default terminal command (use %s for command template)", NULL);
+  g_key_file_set_comment (kf, "General", "terminal", " Default terminal command (use %s for arguments placeholder)", NULL);
+  g_key_file_set_string (kf, "General", "open_command", settings.open_cmd);
+  g_key_file_set_comment (kf, "General", "open_command", " Default open command (use %s for arguments placeholder)", NULL);
+  g_key_file_set_string (kf, "General", "date_format", settings.date_format);
+  g_key_file_set_comment (kf, "General", "date_format", " Default date format (see strftime(3) for details)", NULL);
   g_key_file_set_boolean (kf, "General", "ignore_unknown_options", settings.ignore_unknown);
-  g_key_file_set_comment (kf, "General", "ignore_unknown_options", "Ingnore unknown command-line options", NULL);
+  g_key_file_set_comment (kf, "General", "ignore_unknown_options", " Ignore unknown command-line options", NULL);
   g_key_file_set_integer (kf, "General", "max_tab", settings.max_tab);
-  g_key_file_set_comment (kf, "General", "max_tab", "Maximum number of tabs in notebook", NULL);
+  g_key_file_set_comment (kf, "General", "max_tab", " Maximum number of tabs in notebook", NULL);
 
   if (settings.print_settings)
     gtk_print_settings_to_key_file (settings.print_settings, kf, NULL);
@@ -158,7 +139,7 @@ write_settings (void)
 
   if (g_mkdir_with_parents (g_get_user_config_dir (), 0755) != -1)
     {
-      gchar *filename = g_build_filename (g_get_user_config_dir (), SETTINGS_FILE, NULL);
+      gchar *filename = g_build_filename (g_get_user_config_dir (), YAD_SETTINGS_FILE, NULL);
       g_file_set_contents (filename, context, -1, NULL);
       g_free (filename);
     }
@@ -205,17 +186,116 @@ get_pixbuf (gchar * name, YadIconSize size)
   return pb;
 }
 
-#ifdef __clang__
-extern inline void
-#else
-inline void
-#endif
-strip_new_line (gchar * str)
+gchar *
+get_color (GdkColor *c, guint64 alpha)
 {
-  gint nl = strlen (str) - 1;
+  gchar *cs;
+  gchar *res = NULL;
 
-  if (str[nl] == '\n')
-    str[nl] = '\0';
+  switch (options.color_data.mode)
+    {
+    case YAD_COLOR_HEX:
+      cs = gdk_color_to_string (c);
+      if (options.color_data.alpha)
+        {
+          if (options.color_data.extra)
+            res = g_strdup_printf ("#%s%hx", cs + 1, alpha);
+          else
+            res = g_strdup_printf ("#%c%c%c%c%c%c%hx", cs[1], cs[2], cs[5], cs[6], cs[9], cs[10], alpha / 256);
+        }
+      else
+        {
+          if (options.color_data.extra)
+            res = g_strdup_printf ("%s", cs);
+          else
+            res = g_strdup_printf ("#%c%c%c%c%c%c", cs[1], cs[2], cs[5], cs[6], cs[9], cs[10]);
+        }
+      g_free (cs);
+      break;
+    case YAD_COLOR_RGB:
+      if (options.color_data.alpha)
+        res = g_strdup_printf ("rgba(%.1f, %.1f, %.1f, %.1f)", (double) c->red / 255.0, (double) c->green / 255.0,
+                               (double) c->blue / 255.0, (double) alpha / 255 / 255);
+      else
+        res = g_strdup_printf ("rgb(%.1f, %.1f, %.1f)", (double) c->red / 255.0, (double) c->green / 255.0,
+                               (double) c->blue / 255.0);
+      break;
+    }
+
+  return res;
+}
+
+void
+update_preview (GtkFileChooser * chooser, GtkWidget *p)
+{
+  gchar *uri;
+  static gchar *normal_path = NULL;
+  static gchar *large_path = NULL;
+
+  /* init thumbnails path */
+  if (!normal_path)
+    normal_path = g_build_filename (g_get_user_cache_dir (), "thumbnails", "normal", NULL);
+  if (!large_path)
+    large_path = g_build_filename (g_get_user_cache_dir (), "thumbnails", "large", NULL);
+
+  /* load preview */
+  uri = gtk_file_chooser_get_preview_uri (chooser);
+  if (uri)
+    {
+      gchar *file;
+      GChecksum *chs;
+      GdkPixbuf *pb;
+
+      chs = g_checksum_new (G_CHECKSUM_MD5);
+      g_checksum_update (chs, (const guchar *) uri, -1);
+      /* first try to get preview from large thumbnail */
+      file = g_strdup_printf ("%s/%s.png", large_path, g_checksum_get_string (chs));
+      if (g_file_test (file, G_FILE_TEST_EXISTS))
+        pb = gdk_pixbuf_new_from_file (file, NULL);
+      else
+        {
+          /* try to get preview from normal thumbnail */
+          g_free (file);
+          file = g_strdup_printf ("%s/%s.png", normal_path, g_checksum_get_string (chs));
+          if (g_file_test (file, G_FILE_TEST_EXISTS))
+            pb = gdk_pixbuf_new_from_file (file, NULL);
+          else
+            {
+              /* try to create it */
+              g_free (file);
+              file = g_filename_from_uri (uri, NULL, NULL);
+              pb = gdk_pixbuf_new_from_file_at_size (file, 256, 256, NULL);
+              g_free (file);
+              if (pb)
+                {
+                  /* save thumbnail */
+                  g_mkdir_with_parents (large_path, 0755);
+                  file = g_strdup_printf ("%s/%s.png", large_path, g_checksum_get_string (chs));
+                  gdk_pixbuf_save (pb, file, "png", NULL, NULL);
+                }
+            }
+        }
+      g_checksum_free (chs);
+
+      if (pb)
+        {
+          gtk_image_set_from_pixbuf (GTK_IMAGE (p), pb);
+          g_object_unref (pb);
+          gtk_file_chooser_set_preview_widget_active (chooser, TRUE);
+        }
+      else
+        gtk_file_chooser_set_preview_widget_active (chooser, FALSE);
+
+      g_free (uri);
+    }
+  else
+    gtk_file_chooser_set_preview_widget_active (chooser, FALSE);
+}
+
+void
+filechooser_mapped (GtkWidget *w, gpointer data)
+{
+  gtk_file_chooser_set_show_hidden (GTK_FILE_CHOOSER (w), options.common_data.show_hidden);
 }
 
 gchar **
@@ -249,7 +329,7 @@ get_tabs (key_t key, gboolean create)
     {
       if ((shmid = shmget (key, (settings.max_tab + 1) * sizeof (YadNTabs), IPC_CREAT | IPC_EXCL | 0644)) == -1)
         {
-          g_printerr ("yad: cannot create shared memory for key %ld: %s\n", key, strerror (errno));
+          g_printerr ("yad: cannot create shared memory for key %d: %s\n", key, strerror (errno));
           return NULL;
         }
     }
@@ -258,15 +338,15 @@ get_tabs (key_t key, gboolean create)
       if ((shmid = shmget (key, (settings.max_tab + 1) * sizeof (YadNTabs), 0)) == -1)
         {
           if (errno != ENOENT)
-            g_printerr ("yad: cannot get shared memory for key %ld: %s\n", key, strerror (errno));
+            g_printerr ("yad: cannot get shared memory for key %d: %s\n", key, strerror (errno));
           return NULL;
         }
     }
 
   /* attach shared memory */
-  if ((t = shmat (shmid, NULL, 0)) == (YadNTabs *) -1)
+  if ((t = shmat (shmid, NULL, 0)) == (YadNTabs *) - 1)
     {
-      g_printerr ("yad: cannot attach shared memory for key %ld: %s\n", key, strerror (errno));
+      g_printerr ("yad: cannot attach shared memory for key %d: %s\n", key, strerror (errno));
       return NULL;
     }
 
@@ -285,14 +365,14 @@ get_tabs (key_t key, gboolean create)
 }
 
 GtkWidget *
-get_label (gchar *str, guint border)
+get_label (gchar * str, guint border)
 {
   GtkWidget *a, *t, *i, *l;
   GtkStockItem it;
   gchar **vals;
 
-  if (!str)
-    return gtk_label_new ("");
+  if (!str || !*str)
+    return gtk_label_new (NULL);
 
   l = i = NULL;
 
@@ -351,32 +431,32 @@ get_label (gchar *str, guint border)
   return a;
 }
 
-char *
-escape_str (char *str)
+gchar *
+escape_str (gchar *str)
 {
-  char *res, *buf = str;
-  unsigned i = 0, len;
+  gchar *res, *buf = str;
+  guint i = 0, len;
 
   if (!str)
     return NULL;
 
   len = strlen (str);
-  res = (char *) calloc (len + 1, sizeof (char));
+  res = (gchar *) calloc (len * 2 + 1, sizeof (gchar));
 
   while (*buf)
     {
       switch (*buf)
         {
         case '\n':
-          len += 1;
-          res = (char *) realloc (res, len + 1);
           strcpy (res + i, "\\n");
           i += 2;
           break;
         case '\t':
-          len += 1;
-          res = (char *) realloc (res, len + 1);
           strcpy (res + i, "\\t");
+          i += 2;
+          break;
+        case '\\':
+          strcpy (res + i, "\\\\");
           i += 2;
           break;
         default:
@@ -389,4 +469,94 @@ escape_str (char *str)
   res[i] = '\0';
 
   return res;
+}
+
+gchar *
+escape_char (gchar *str, gchar ch)
+{
+  gchar *res, *buf = str;
+  guint i = 0, len;
+
+  if (!str)
+    return NULL;
+
+  len = strlen (str);
+  res = (gchar *) calloc (len * 2 + 1, sizeof (gchar));
+
+  while (*buf)
+    {
+      if (*buf == ch)
+        {
+          strcpy (res + i, "\\\"");
+          i += 2;
+        }
+      else
+        {
+          *(res + i) = *buf;
+          i++;
+        }
+      buf++;
+    }
+  res[i] = '\0';
+
+  return res;
+}
+
+gboolean
+check_complete (GtkEntryCompletion *c, const gchar *key, GtkTreeIter *iter, gpointer data)
+{
+  gchar *value = NULL;
+  GtkTreeModel *model = gtk_entry_completion_get_model (c);
+  gboolean found = FALSE;
+
+  if (!model || !key || !key[0])
+    return FALSE;
+
+  gtk_tree_model_get (model, iter, 0, &value, -1);
+
+  if (value)
+    {
+      gchar **words = NULL;
+      guint i = 0;
+
+      switch (options.common_data.complete)
+        {
+        case YAD_COMPLETE_ANY:
+          words = g_strsplit_set (key, " \t", -1);
+          while (words[i])
+            {
+              if (strcasestr (value, words[i]) != NULL)
+                {
+                  /* found one of the words */
+                  found = TRUE;
+                  break;
+                }
+              i++;
+            }
+          break;
+        case YAD_COMPLETE_ALL:
+          words = g_strsplit_set (key, " \t", -1);
+          found = TRUE;
+          while (words[i])
+            {
+              if (strcasestr (value, words[i]) == NULL)
+                {
+                  /* not found one of the words */
+                  found = FALSE;
+                  break;
+                }
+              i++;
+            }
+          break;
+        case YAD_COMPLETE_REGEX:
+          found = g_regex_match_simple (key, value, G_REGEX_CASELESS | G_REGEX_OPTIMIZE, G_REGEX_MATCH_NOTEMPTY);
+          break;
+        default: ;
+        }
+
+      if (words)
+        g_strfreev (words);
+    }
+
+  return found;
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2010-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2010-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <config.h>
@@ -347,6 +347,7 @@ main (gint argc, gchar * argv[])
 
   data->icon_list = gtk_tree_view_new ();
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (data->icon_list), TRUE);
+  gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (data->icon_list), TRUE);
   gtk_container_add (GTK_CONTAINER (w), data->icon_list);
 
   sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (data->icon_list));

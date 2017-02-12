@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with YAD. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright (C) 2008-2014, Victor Ananjevsky <ananasik@gmail.com>
+ * Copyright (C) 2008-2016, Victor Ananjevsky <ananasik@gmail.com>
  */
 
 #include <errno.h>
@@ -125,7 +125,7 @@ color_create_widget (GtkWidget * dlg)
 
   color = gtk_color_selection_new ();
   gtk_widget_set_name (color, "yad-color-widget");
-  gtk_color_selection_set_has_palette (GTK_COLOR_SELECTION (color), settings.show_gtk_palette);
+  gtk_color_selection_set_has_palette (GTK_COLOR_SELECTION (color), options.color_data.gtk_palette);
   if (options.color_data.init_color)
     {
       GdkColor c;
@@ -148,19 +148,19 @@ color_create_widget (GtkWidget * dlg)
 
           /* create expander */
           exp = gtk_expander_new (_("Palette"));
-          gtk_expander_set_expanded (GTK_EXPANDER (exp), settings.expand_palette);
+          gtk_expander_set_expanded (GTK_EXPANDER (exp), options.color_data.expand_palette);
           gtk_container_set_border_width (GTK_CONTAINER (exp), 5);
           gtk_box_pack_start (GTK_BOX (w), exp, TRUE, TRUE, 2);
 
           /* create color list */
           sw = gtk_scrolled_window_new (NULL, NULL);
           gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (sw), GTK_SHADOW_ETCHED_IN);
-          gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+          gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw), options.hscroll_policy, options.vscroll_policy);
+          gtk_widget_set_size_request (sw, -1, 75);
           gtk_container_add (GTK_CONTAINER (exp), sw);
 
           list = gtk_tree_view_new_with_model (model);
           gtk_widget_set_name (list, "yad-color-palette");
-          gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (list), settings.rules_hint);
           g_object_unref (model);
           gtk_container_add (GTK_CONTAINER (sw), list);
 
@@ -206,13 +206,14 @@ void
 color_print_result (void)
 {
   GdkColor c;
+  guint64 alpha;
   gchar *cs;
 
   gtk_color_selection_get_current_color (GTK_COLOR_SELECTION (color), &c);
-  cs = gdk_color_to_string (&c);
-  if (options.color_data.extra)
-    g_print ("%s\n", cs);
-  else
-    g_printf ("#%c%c%c%c%c%c\n", cs[1], cs[2], cs[5], cs[6], cs[9], cs[10]);
-  g_free (cs);
+  alpha = gtk_color_selection_get_current_alpha (GTK_COLOR_SELECTION (color));
+
+  cs = get_color (&c, alpha);
+
+  if (cs)
+    g_printf ("%s\n", cs);
 }
